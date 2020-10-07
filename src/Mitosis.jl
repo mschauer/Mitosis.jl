@@ -4,6 +4,8 @@ using LinearAlgebra
 using Random
 using MeasureTheory
 
+using MeasureTheory: AbstractMeasure
+
 import Base: iterate, length
 function independent_sum
 end
