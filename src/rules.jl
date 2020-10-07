@@ -1,4 +1,4 @@
-function right′(k::GaussKernel, a)
+function right′(::BFFG, k::GaussKernel, a)
 	(c, F, H) = params(a)
 	y, B, β = approx(k.ops[1], F, H)   # linearise mean function
 	Q = k.ops[2](y)	            # constant approximation
@@ -7,7 +7,7 @@ function right′(k::GaussKernel, a)
 #	c, F, H =  ...		     # compute new htilde
 	return m, WeightedGaussian(c, F, H)
 end
-function left′(k::GaussKernel, (l, x), z, m)
+function left′(::BFFG, k::GaussKernel, (l, x), z, m)
 	B, β, Q, a = m	           # unpack message
 	F, H = params(a)
 #	...			 	# compute parameters for guided proposal
@@ -17,7 +17,7 @@ function left′(k::GaussKernel, (l, x), z, m)
 	return l + c, x + μᵒ + chol(Qᵒ)*z
 end
 
-function right′(::Copy, a, b)
+function right′(::BFFG, ::Copy, a, b)
 	(c1, F1, H1) = params(a)
 	(c2, F2, H2) = params(b)
 	Q = inv(H1)

@@ -5,7 +5,10 @@ using Random
 using MeasureTheory
 
 import Base: iterate, length
-function ⊕ end
+function independent_sum
+end
+const ⊕ = independent_sum
+
 const ∅ = nothing
 
 abstract type Context end
@@ -15,6 +18,9 @@ end
 
 inner(x) = dot(x,x)
 outer(x) = x*x'
+
+logdet(Σ, d) = LinearAlgebra.logdet(Σ)
+
 
 macro F(f) :(::typeof($f)) end
 
