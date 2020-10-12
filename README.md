@@ -1,4 +1,4 @@
-# Mitosis (work in progress)
+# Mitosis.jl (work in progress)
 
 Incorporate discrete and continuous time Markov processes as building blocks into probabilistic graphical models.
 
