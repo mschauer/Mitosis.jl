@@ -4,7 +4,7 @@ using LinearAlgebra
 using Random
 using MeasureTheory
 
-using MeasureTheory: AbstractMeasure
+using MeasureTheory: AbstractMeasure, ScaledMeasure
 
 import Base: iterate, length
 function independent_sum

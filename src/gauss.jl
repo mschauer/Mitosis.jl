@@ -24,12 +24,21 @@ unwhiten(p::Gaussian{P}, z) where {P <: NamedTuple{(:μ, :Σ)}} = cholesky(p.par
 sqmahal(p::Gaussian, x) = norm_sqr(whiten(p, x))
 
 rand(p::Gaussian) = rand(GLOBAL_RNG, p)
-rand(RNG::AbstractRNG, P::Gaussian) = unwhiten(p, randn(RNG, typeof(mean(p))))
+rand(RNG::AbstractRNG, p::Gaussian) = unwhiten(p, randn(RNG, typeof(mean(p))))
 
-MeasureTheory.logdensity(p::Gaussian{P}, x) = -(sqmahal(p,x) + _logdet(p, dim(p)) + dim(p)*log(2pi))/2
+MeasureTheory.logdensity(p::Gaussian, x) = -(sqmahal(p,x) + _logdet(p, dim(p)) + dim(p)*log(2pi))/2
 MeasureTheory.density(p::Gaussian, x) = exp(logpdf(p, x))
 
-Base.:+(p::Gaussian{P}, x) = Gaussian{P}(mean(p) + x, p.par[2])
+## WeightedGaussian
+
+weight(μ) = 0.0
+weight(μ::ScaledMeasure) = logscale(μ)
+weightedgaussian(c; args...) = MeasureTheory.ScaledMeasure(logscale, Gaussian(; args...))
+wgaussian_params(p::Gaussian) = weight(p), cov(p), mean(p)
+
+## Algebra
+
+Base.:+(p::Gaussian{P}, x) where {P} = Gaussian{P}(mean(p) + x, p.par[2])
 Base.:+(x, p::Gaussian) = p + x
 
 Base.:-(p::Gaussian, x) = p + (-x)
