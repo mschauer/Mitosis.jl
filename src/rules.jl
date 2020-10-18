@@ -14,12 +14,12 @@ function left′(::BFFG, k::GaussKernel, (l, x), z, m)
 #	c = ...
 #	μᵒ =  ...
 #	Qᵒ = ...
-	return l + c, x + μᵒ + chol(Qᵒ)*z
+	return nothing, (l + c, x + μᵒ + chol(Qᵒ)*z)
 end
 
 function right′(::BFFG, ::Copy, a, b)
 	(c1, Q, x) = wgaussian_params(a)
-	(c2, Σ, ν) = wgaussian_params(a)
+	(c2, Σ, ν) = wgaussian_params(b)
 	S = Q + Σ # innovation covariance
 	K = Q/S # Kalman gain
 	x = x + K*(ν - x)
