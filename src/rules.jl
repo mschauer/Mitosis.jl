@@ -18,7 +18,7 @@ function left′(::BFFG, k::GaussKernel, (l, x), z, m)
 end
 
 function right′(::BFFG, ::Copy, a, b)
-	(c1, Q, x = wgaussian_params(a)
+	(c1, Q, x) = wgaussian_params(a)
 	(c2, Σ, ν) = wgaussian_params(a)
 	S = Q + Σ # innovation covariance
 	K = Q/S # Kalman gain
