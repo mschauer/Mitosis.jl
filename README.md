@@ -10,6 +10,14 @@ Starting point is the generative model, a forward description of the probabilist
 
 The preconditional model approximates the actual conditional model, with known likelihood-ratio between the two and can be used in a variety of sampling and statistical inference approaches to speed up inference.
 
+## Overview
+
+This package will contain the general infrastructure and the rules for non-linear Gaussian transition kernels, thus allowing non-linear state space models.
+
+In parallel, rules for stochastic differential equations are developed in [MitosisStochasticDiffEq.jl](https://github.com/mschauer/MitosisStochasticDiffEq.jl)
+
+
+
 ## References
 
 * Frank van der Meulen, Moritz Schauer (2020): Automatic Backward Filtering Forward Guiding for Markov processes and graphical models. [[arXiv:2010.03509]](https://arxiv.org/abs/2010.03509).
