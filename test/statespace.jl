@@ -77,12 +77,13 @@ P0L = cholesky(P0).L
 QL = cholesky(Q).L
 RL = cholesky(R).L
 Z(m,n) = zeros(m,n)
+# Lower cholesky factor from "innovation form"
 L = [   [     P0L  Z(2,2) Z(2,2)  Z(2,1)  Z(2,1)  Z(2,1)]
         [    Φ*P0L     QL Z(2,2)  Z(2,1)  Z(2,1)  Z(2,1)]
-        [  Φ*Φ*P0L   Φ*QL   QL   Z(2,1)  Z(2,1)  Z(2,1)]
-        [    H*P0L  Z(1,2)   Z(1,2)   RL  0I  0I]
-        [  H*Φ*P0L   H*QL Z(1,2)  0I  RL  0I]
-        [H*Φ*Φ*P0L H*Φ*QL H*QL  0I  0I  RL]
+        [  Φ*Φ*P0L   Φ*QL     QL  Z(2,1)  Z(2,1)  Z(2,1)]
+        [    H*P0L Z(1,2) Z(1,2)     RL  0I  0I]
+        [  H*Φ*P0L   H*QL Z(1,2)     0I  RL  0I]
+        [H*Φ*Φ*P0L H*Φ*QL   H*QL     0I  0I  RL]
 ]
 
 Σ = L*L'
