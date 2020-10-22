@@ -4,6 +4,8 @@ struct Gaussian{P} <: AbstractMeasure
     par::P
 end
 Gaussian(;args...) = Gaussian(args.data)
+# the following propagates uncertainty if `μ` is `Gaussian`
+Gaussian(par::NamedTuple{(:μ,:Σ),Tuple{T,S}}) where {T<:Gaussian, S} = Gaussian((;μ = mean(par.μ),Σ=par.Σ +cov(par.μ)))
 
 Base.:(==)(p1::Gaussian, p2::Gaussian) = mean(p1) == mean(p2) && cov(p1) == cov(p2)
 Base.isapprox(p1::Gaussian, p2::Gaussian; kwargs...) =

@@ -8,3 +8,4 @@ struct AffineMap{S,T}
     β::T
 end
 (a::AffineMap)(x) = a.B*x + a.β
+(a::AffineMap)(p::Gaussian) = Gaussian(μ = a.B*mean(p) + a.β, Σ = a.B*cov(p)*a.B')
