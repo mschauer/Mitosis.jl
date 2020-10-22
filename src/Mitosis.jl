@@ -8,6 +8,7 @@ using MeasureTheory: AbstractMeasure, ScaledMeasure
 
 import Base: iterate, length
 
+export Gaussian
 export Traced, BFFG, left′, right′, backwardfilter, forwardsampler
 
 
