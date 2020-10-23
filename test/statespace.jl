@@ -83,18 +83,18 @@ RL = cholesky(R).L
 Z(m,n) = zeros(m,n)
 # Lower cholesky factor from "innovation form"
 L = [   [     P0L  Z(2,2) Z(2,2)  Z(2,1)  Z(2,1)  Z(2,1)]
-        [    Φ*P0L     QL Z(2,2)  Z(2,1)  Z(2,1)  Z(2,1)]
-        [  Φ*Φ*P0L   Φ*QL     QL  Z(2,1)  Z(2,1)  Z(2,1)]
-        [    H*P0L Z(1,2) Z(1,2)     RL  0I  0I]
-        [  H*Φ*P0L   H*QL Z(1,2)     0I  RL  0I]
-        [H*Φ*Φ*P0L H*Φ*QL   H*QL     0I  0I  RL]
+    [    Φ*P0L     QL Z(2,2)  Z(2,1)  Z(2,1)  Z(2,1)]
+    [  Φ*Φ*P0L   Φ*QL     QL  Z(2,1)  Z(2,1)  Z(2,1)]
+    [    H*P0L Z(1,2) Z(1,2)     RL  0I  0I]
+    [  H*Φ*P0L   H*QL Z(1,2)     0I  RL  0I]
+    [H*Φ*Φ*P0L H*Φ*QL   H*QL     0I  0I  RL]
 ]
 
 Σ = L*L'
 
 @testset "Uncertainty propagation" begin
-        @test μ ≈ flat(mean.([p0, p1, p2, q0, q1, q2]))
-        @test diag(Σ) ≈ flat(diag.(cov.([p0, p1, p2, q0, q1, q2])))
+    @test μ ≈ flat(mean.([p0, p1, p2, q0, q1, q2]))
+    @test diag(Σ) ≈ flat(diag.(cov.([p0, p1, p2, q0, q1, q2])))
 end
 
 # Compute the conditional distribution of vector `x0` given data.
@@ -108,40 +108,40 @@ end
 π2 = Mitosis.conditional(Gaussian(;μ=μ, Σ=Σ), 5:6, 7:9, vcat(y0, y1, y2))
 
 @testset "Kalman filter" begin
-        p0f = correct(p0, observation, y0)[1]
-        p1p = transition2(p0f)
-        p1f = correct(p1p, observation, y1)[1]
-        p2p = transition2(p1f)
-        p2f = correct(p2p, observation, y2)[1]
+    p0f = correct(p0, observation, y0)[1]
+    p1p = transition2(p0f)
+    p1f = correct(p1p, observation, y1)[1]
+    p2p = transition2(p1f)
+    p2f = correct(p2p, observation, y2)[1]
 
-        @test mean(p2f) ≈ mean(π2)
-        @test cov(p2f) ≈ cov(π2)
+    @test mean(p2f) ≈ mean(π2)
+    @test cov(p2f) ≈ cov(π2)
 end
 
 
 @testset "right' linear gaussian case" begin
-        p0 = right′(BFFG(), transition1, p1)[2]
+    p0 = right′(BFFG(), transition1, p1)[2]
 
-        ν, P = meancov(p0)
+    ν, P = meancov(p0)
 
-        @test mean(transition1(ν)) ≈ mean(p1)
-        @test Φ*cov(p0)*Φ' ≈ (cov(p1) + Q)
+    @test mean(transition1(ν)) ≈ mean(p1)
+    @test Φ*cov(p0)*Φ' ≈ (cov(p1) + Q)
 
 
 
-        H = inv(cov(p1))
-        q1 = WGaussian(F=H*mean(p1), Γ=H, c=0.0)
-        @test logdensity(q1, x0) ≈ logdensity(p1, x0)
+    H = inv(cov(p1))
+    q1 = WGaussian(F=H*mean(p1), Γ=H, c=0.0)
+    @test logdensity(q1, x0) ≈ logdensity(p1, x0)
 
-        q0 = right′(BFFG(), transition1, q1)[2]
+    q0 = right′(BFFG(), transition1, q1)[2]
 
-        ν0 = q0.Γ\q0.F
-        P0 = inv(q0.Γ)
-        @test mean(transition1(ν0)) ≈ mean(p1)
-        @test Φ*P0*Φ' ≈ (cov(p1) + Q)
+    ν0 = q0.Γ\q0.F
+    P0 = inv(q0.Γ)
+    @test mean(transition1(ν0)) ≈ mean(p1)
+    @test Φ*P0*Φ' ≈ (cov(p1) + Q)
 
-        pp = transition1(x0)⊕Gaussian(μ=0*p1.μ, Σ=p1.Σ)
-        @test logdensity(q0, x0) ≈ logdensity(pp, p1.μ)
+    pp = transition1(x0)⊕Gaussian(μ=0*p1.μ, Σ=p1.Σ)
+    @test logdensity(q0, x0) ≈ logdensity(pp, p1.μ)
 
-        @test 0.0 ≈ -logdet(pp.Σ)/2 - (p.c + logdet(q0.Γ)/2) atol=1e-10
+    @test 0.0 ≈ -logdet(pp.Σ)/2 - (p.c + logdet(q0.Γ)/2) atol=1e-10
 end
