@@ -2,7 +2,7 @@
 using Mitosis
 
 
-using Mitosis: kernel, Kernel, Gaussian, AffineMap, GaussKernel
+using Mitosis: kernel, correct, Kernel, Gaussian, ConstantMap, AffineMap, GaussKernel
 using Random, Test, LinearAlgebra, Statistics
 
 Random.seed!(1)
@@ -28,11 +28,12 @@ INoise = Gaussian(μ=zero(x0), Σ=Q)
 Noise = Gaussian(μ=zero(yshadow),Σ=R)
 
 @test AffineMap(Φ, β)(x0) == Φ*x0 + β
+@test ConstantMap(β)(x0) == β
 
-transition = kernel(Gaussian; μ=AffineMap(Φ, β), Σ=(_)->Q)
-transition2 = kernel(Gaussian; μ=AffineMap(Φ, 0β), Σ=(_)->Q)
+transition = kernel(Gaussian; μ=AffineMap(Φ, β), Σ=ConstantMap(Q))
+transition2 = kernel(Gaussian; μ=AffineMap(Φ, 0β), Σ=ConstantMap(Q))
 
-observation = kernel(Gaussian; μ=AffineMap(H, yshadow), Σ=(_)->R)
+observation = kernel(Gaussian; μ=AffineMap(H, yshadow), Σ=ConstantMap(R))
 
 @test 10/sqrt(K) > norm(Φ*x0 + β - mean(rand(transition(x0)) for x in 1:K))
 
@@ -50,6 +51,9 @@ p0 = Gaussian(μ=x0, Σ=P0)
 
 @test mean(AffineMap(Φ, β)(p0)) == Φ*x0 + β
 @test cov(AffineMap(Φ, β)(p0)) == Φ*P0*Φ'
+
+correct(p0, observation, y0)
+
 
 q0 = observation(p0)
 @test cov(q0) == H*P0*H' + R

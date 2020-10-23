@@ -7,12 +7,19 @@ Gaussian(;args...) = Gaussian(args.data)
 # the following propagates uncertainty if `μ` is `Gaussian`
 Gaussian(par::NamedTuple{(:μ,:Σ),Tuple{T,S}}) where {T<:Gaussian, S} = Gaussian((;μ = mean(par.μ),Σ=par.Σ +cov(par.μ)))
 
+
+Base.keys(p::Gaussian) = keys(p.par)
+
+## Basics
+
 Base.:(==)(p1::Gaussian, p2::Gaussian) = mean(p1) == mean(p2) && cov(p1) == cov(p2)
 Base.isapprox(p1::Gaussian, p2::Gaussian; kwargs...) =
     isapprox(mean(p1), mean(p2); kwargs...) && isapprox(cov(p1), cov(p2); kwargs...)
 
 mean(p::Gaussian{P}) where {P <: NamedTuple{(:μ, :Σ)}} = p.par.μ
 cov(p::Gaussian{P}) where {P <: NamedTuple{(:μ, :Σ)}} = p.par.Σ
+meancov(p) = mean(p), cov(p)
+
 precision(p::Gaussian{P}) where {P <: NamedTuple{(:μ, :Σ)}} = inv(p.par.Σ)
 
 mean(p::Gaussian{P}) where {P <: NamedTuple{(:F, :Γ)}} = Γ\p.par.F
@@ -50,14 +57,15 @@ Base.:*(M, p::Gaussian{P}) where {P <: NamedTuple{(:μ, :Σ)}}  = Gaussian{P}(M 
 ⊕(x, p::Gaussian) = x + p
 ⊕(p::Gaussian, x) = p + x
 
-## Conditional
+## Conditionals and filtering
 
 """
-    conditional(P::Gaussian, A, B, xB)
+    conditional(p::Gaussian, A, B, xB)
+
 Conditional distribution of `X[i for i in A]` given
 `X[i for i in B] == xB` if ``X ~ P``.
 """
-function conditional(P::Gaussian{T}, A, B, xB) where {T <: NamedTuple{(:μ, :Σ)}}
-    Z = P.par.Σ[A,B]*inv(P.par.Σ[B,B])
-    Gaussian(μ = P.par.μ[A] + Z*(xB - P.par.μ[B]), Σ = P.par.Σ[A,A] - Z*P.par.Σ[B,A])
+function conditional(p::Gaussian{T}, A, B, xB) where {T <: NamedTuple{(:μ, :Σ)}}
+    Z = p.par.Σ[A,B]*inv(p.par.Σ[B,B])
+    Gaussian(μ = p.par.μ[A] + Z*(xB - p.par.μ[B]), Σ = p.par.Σ[A,A] - Z*p.par.Σ[B,A])
 end
