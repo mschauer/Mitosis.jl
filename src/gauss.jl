@@ -9,7 +9,8 @@ Gaussian(;args...) = Gaussian(args.data)
 Gaussian{P}(;args...) where {P} = Gaussian{P}(args.data)
 
 # the following propagates uncertainty if `μ` is `Gaussian`
-Gaussian(par::NamedTuple{(:μ,:Σ),Tuple{T,S}}) where {T<:Gaussian, S} = Gaussian((;μ = mean(par.μ),Σ=par.Σ +cov(par.μ)))
+Gaussian(par::NamedTuple{(:μ,:Σ),Tuple{T,S}}) where {T<:Gaussian,S} = Gaussian((;μ = mean(par.μ),Σ=par.Σ +cov(par.μ)))
+Gaussian{P}(par::NamedTuple{(:μ,:Σ),Tuple{T,S}}) where {P,T<:Gaussian,S} = Gaussian{P}((;μ = mean(par.μ),Σ=par.Σ +cov(par.μ)))
 
 const GaussianOrNdTuple{P} = Union{Gaussian{P},NamedTuple{P}}
 

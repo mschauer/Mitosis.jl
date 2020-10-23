@@ -24,6 +24,8 @@ struct ConstantMap{T}
 end
 (a::ConstantMap)(x) = a.x
 
+const LinearGaussianKernel =  Kernel{T,NamedTuple{(:μ, :Σ),Tuple{A, C}}} where {T<:Gaussian, A<:LinearMap, C<:ConstantMap}
+
 """
     correct(prior, obskernel, obs) = u, yres, S
 
@@ -34,12 +36,12 @@ and `obs` the observation with observation kernel
 distribution `u`, the residual and the innovation covariance.
 See https://en.wikipedia.org/wiki/Kalman_filter#Update.
 """
-function correct(u::T, k::Kernel{T2,NamedTuple{(:μ, :Σ),Tuple{A, C}}}, y) where {T, T2<:Gaussian, A<:LinearMap, C<:ConstantMap}
+function correct(u::Gaussian{T}, k::LinearGaussianKernel, y) where {T}
     x, Ppred = meancov(u)
     H = k.ops.μ.B
     R = k.ops.Σ.x
     (x, P), yres, S = correct_joseph((x, Ppred), H, R, y)
-    Gaussian(μ=x, Σ=P), yres, S
+    Gaussian{T}(μ=x, Σ=P), yres, S
 end
 
 function correct_joseph((x, Ppred), H, R, y)
