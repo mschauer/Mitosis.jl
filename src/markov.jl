@@ -51,3 +51,15 @@ function correct_joseph((x, Ppred), H, R, y)
     P = (I - K*H)*Ppred*(I - K*H)' + K*R*K' #  Joseph form
     (x, P), yres, S
 end
+
+function smooth(Gs::T, Gf, Gpred, Φ) where {T}
+    xs, Ps = meancov(Gs)
+    xf, Pf = meancov(Gf)
+    xpred, Ppred = meancov(Gpred)
+
+    J = Pf*Φ'/Ppred # C/(C+w)
+    xs = xf + J*(xs - xpred)
+    Ps = Pf + J*(Ps - Ppred)*J'
+
+    (xs, Ps)
+end

@@ -1,3 +1,7 @@
+function right′(k::GaussKernel, a::GaussianOrNdTuple{(:mu, :Σ)})
+
+end
+
 function right′(::BFFG, k::GaussKernel, a)
 	(c, F, H) = wgaussian_params(a)
 	y, B, β = approx(k.ops[1], F, H)   # linearise mean function

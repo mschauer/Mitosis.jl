@@ -4,6 +4,8 @@ K = 10000
 Q = Matrix(1.0I, 2, 2)
 G = Gaussian(μ=m, Σ=Q)
 
+@test G === Gaussian{keys(G)}(m, Q)
+
 @test m === mean(G)
 @test Q === cov(G)
 
