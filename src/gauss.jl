@@ -1,5 +1,6 @@
 import Statistics: mean, cov
 import Random.rand
+import LinearAlgebra.logdet
 struct Gaussian{P,T} <: AbstractMeasure
     par::NamedTuple{P,T}
 end
@@ -33,7 +34,7 @@ precision(p::Gaussian{(:μ, :Σ)}) = inv(p.Σ)
 mean(p::Gaussian{(:F, :Γ)}) = Γ\p.F
 cov(p::Gaussian{(:F, :Γ)}) = inv(p.Γ)
 precision(p::Gaussian{(:F, :Γ)}) = p.Γ
-
+norm_sqr(x) = dot(x,x)
 dim(p::Gaussian{(:F, :Γ)}) = length(p.F)
 dim(p::Gaussian) = length(mean(p))
 whiten(p::Gaussian{(:μ, :Σ)}, x) = cholesky(p.Σ).U'\(x - p.μ)
@@ -42,8 +43,8 @@ sqmahal(p::Gaussian, x) = norm_sqr(whiten(p, x))
 
 rand(p::Gaussian) = rand(Random.GLOBAL_RNG, p)
 rand(RNG::AbstractRNG, p::Gaussian) = unwhiten(p, randn!(RNG, zero(mean(p))))
-
-MeasureTheory.logdensity(p::Gaussian, x) = -(sqmahal(p,x) + _logdet(p, dim(p)) + dim(p)*log(2pi))/2
+_logdet(p::Gaussian{(:μ,:Σ)}) = _logdet(p.Σ, dim(p))
+MeasureTheory.logdensity(p::Gaussian, x) = -(sqmahal(p,x) + _logdet(p) + dim(p)*log(2pi))/2
 MeasureTheory.density(p::Gaussian, x) = exp(logpdf(p, x))
 
 ## WeightedGaussian

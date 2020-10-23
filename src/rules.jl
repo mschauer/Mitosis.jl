@@ -1,4 +1,4 @@
-function right′(k::LinearGaussianKernel, q::GaussianOrNdTuple{(:μ, :Σ)})
+function right′(::BFFG, k::LinearGaussianKernel, q::GaussianOrNdTuple{(:μ, :Σ)})
 	ν, Σ = q.μ, q.Σ
 	B, Q = params(k)
 	B⁻¹ = inv(B)
@@ -7,6 +7,21 @@ function right′(k::LinearGaussianKernel, q::GaussianOrNdTuple{(:μ, :Σ)})
     #c = c + logdet(B*B')/2
     q, Gaussian{(:μ,:Σ)}(νp, Σp)
 end
+
+function right′(::BFFG, k::LinearGaussianKernel, q::WGaussianOrNdTuple{(:F, :Γ, :c)})
+	F = big.(q.F)
+	Γ = big.(q.Γ)
+	c = big.(q.c)
+
+	B, Q = params(k)
+	Σ = inv(Γ) # requires invertibility of Σ
+	K = B'/(Σ + Q)
+	Fp = K*Σ*F
+    Γp = K*B
+    cp = c - logdet(B)
+    q, WGaussian{(:F,:Γ,:c)}(Float64.(Fp), Float64.(Γp), Float64.(cp))
+end
+
 
 function right′(::BFFG, k::GaussKernel, a)
 	(c, F, H) = wgaussian_params(a)

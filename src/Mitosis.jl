@@ -28,7 +28,7 @@ end
 inner(x) = dot(x,x)
 outer(x) = x*x'
 
-logdet(Σ, d) = LinearAlgebra.logdet(Σ)
+_logdet(Σ, d::Integer) = LinearAlgebra.logdet(Σ)
 
 
 macro F(f) :(::typeof($f)) end
@@ -48,6 +48,7 @@ end
 
 
 include("gauss.jl")
+include("wgaussian.jl")
 include("markov.jl")
 include("rules.jl")
 
