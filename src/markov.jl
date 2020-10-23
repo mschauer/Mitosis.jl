@@ -34,7 +34,7 @@ and `obs` the observation with observation kernel
 distribution `u`, the residual and the innovation covariance.
 See https://en.wikipedia.org/wiki/Kalman_filter#Update.
 """
-function correct(u::T, k::Kernel{T2,NamedTuple{(:μ, :Σ),Tuple{A, C}}}, y) where {T, T2#=<:Gaussian=#, A<:LinearMap, C<:ConstantMap}
+function correct(u::T, k::Kernel{T2,NamedTuple{(:μ, :Σ),Tuple{A, C}}}, y) where {T, T2<:Gaussian, A<:LinearMap, C<:ConstantMap}
     x, Ppred = meancov(u)
     H = k.ops.μ.B
     R = k.ops.Σ.x
