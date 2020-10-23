@@ -38,13 +38,16 @@ function correct(u::T, k::Kernel{T2,NamedTuple{(:μ, :Σ),Tuple{A, C}}}, y) wher
     x, Ppred = meancov(u)
     H = k.ops.μ.B
     R = k.ops.Σ.x
+    (x, P), yres, S = correct_joseph((x, Ppred), H, R, y)
+    Gaussian(μ=x, Σ=P), yres, S
+end
 
+function correct_joseph((x, Ppred), H, R, y)
     yres = y - H*x # innovation residual
     S = (H*Ppred*H' + R) # innovation covariance
 
     K = Ppred*H'/S # Kalman gain
     x = x + K*yres
     P = (I - K*H)*Ppred*(I - K*H)' + K*R*K' #  Joseph form
-
-    Gaussian(μ=x, Σ=P), yres, S
+    (x, P), yres, S
 end
