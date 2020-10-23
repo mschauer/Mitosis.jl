@@ -52,7 +52,6 @@ p0 = Gaussian(μ=x0, Σ=P0)
 @test mean(AffineMap(Φ, β)(p0)) == Φ*x0 + β
 @test cov(AffineMap(Φ, β)(p0)) == Φ*P0*Φ'
 
-correct(p0, observation, y0)
 
 
 q0 = observation(p0)
@@ -72,9 +71,9 @@ flat(x) = collect(Iterators.flatten(x))
 
 # Write down joint distribution of x's and y's by hand... (yes I am fine ;-))
 # Define mean and covariance of the flattened vector of states and observations [x0 x1 x2 y0 y1 y2]
-μ = [1.0, 0.0, 0.8, -0.1, 0.59, -0.16, 1.0, 0.8, 0.59]
+μ_ = [1.0, 0.0, 0.8, -0.1, 0.59, -0.16, 1.0, 0.8, 0.59]
 μ = [ x0; Φ*x0; Φ*Φ*x0; H*x0; H*Φ*x0; H*Φ*Φ*x0; ]
-@test μ ≈ flat(mean.([p0, p1, p2, q0, q1, q2]))
+@test μ_ ≈ μ
 
 
 P0L = cholesky(P0).L
@@ -91,7 +90,29 @@ L = [   [     P0L  Z(2,2) Z(2,2)  Z(2,1)  Z(2,1)  Z(2,1)]
 ]
 
 Σ = L*L'
-@test diag(Σ) ≈ flat(diag.(cov.([p0, p1, p2, q0, q1, q2])))
+
+@testset "Uncertainty propagation" begin
+        @test μ ≈ flat(mean.([p0, p1, p2, q0, q1, q2]))
+        @test diag(Σ) ≈ flat(diag.(cov.([p0, p1, p2, q0, q1, q2])))
+end
 
 # Compute the conditional distribution of vector `x0` given data.
-xtest = Mitosis.conditional(Gaussian(;μ=μ, Σ=Σ), 1:2, 7:9, vcat(y0, y1, y2))
+π0 = Mitosis.conditional(Gaussian(;μ=μ, Σ=Σ), 1:2, 7:9, vcat(y0, y1, y2))
+
+
+
+
+
+# Compute the conditional distribution of vector `x0` given data.
+π2 = Mitosis.conditional(Gaussian(;μ=μ, Σ=Σ), 5:6, 7:9, vcat(y0, y1, y2))
+
+@testset "Kalman filter" begin
+        p0f = correct(p0, observation, y0)[1]
+        p1p = transition2(p0f)
+        p1f = correct(p1p, observation, y1)[1]
+        p2p = transition2(p1f)
+        p2f = correct(p2p, observation, y2)[1]
+
+        @test mean(p2f) ≈ mean(π2)
+        @test cov(p2f) ≈ cov(π2)
+end
