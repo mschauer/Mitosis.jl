@@ -2,7 +2,7 @@
 using Mitosis
 
 
-using Mitosis: kernel, correct, Kernel, Gaussian, ConstantMap, AffineMap, GaussKernel
+using Mitosis: kernel, correct, Kernel, Gaussian, ConstantMap, AffineMap, LinearMap, GaussKernel
 using Random, Test, LinearAlgebra, Statistics
 
 Random.seed!(1)
@@ -33,7 +33,7 @@ Noise = Gaussian(μ=zero(yshadow),Σ=R)
 transition = kernel(Gaussian; μ=AffineMap(Φ, β), Σ=ConstantMap(Q))
 transition2 = kernel(Gaussian; μ=AffineMap(Φ, 0β), Σ=ConstantMap(Q))
 
-observation = kernel(Gaussian; μ=AffineMap(H, yshadow), Σ=ConstantMap(R))
+observation = kernel(Gaussian; μ=LinearMap(H), Σ=ConstantMap(R))
 
 @test 10/sqrt(K) > norm(Φ*x0 + β - mean(rand(transition(x0)) for x in 1:K))
 

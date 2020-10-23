@@ -11,27 +11,35 @@ end
 (a::AffineMap)(p::Gaussian) = Gaussian(μ = a.B*mean(p) + a.β, Σ = a.B*cov(p)*a.B')
 
 
+struct LinearMap{T}
+    B::T
+end
+(a::LinearMap)(x) = a.B*x
+(a::LinearMap)(p::Gaussian) = Gaussian(μ = a.B*mean(p), Σ = a.B*cov(p)*a.B')
+
+
+
 struct ConstantMap{T}
     x::T
 end
 (a::ConstantMap)(x) = a.x
 
 """
-    correct(prior, kernel, obs) = u, yres, S
+    correct(prior, obskernel, obs) = u, yres, S
 
-Joseph form correction step of a Kalman filter with `u = Gaussian(x, P)` state
-and `v = Gaussian(y, R)` the observation with uncertainty `R`.
-`H` is the observation operator. Returns corrected/conditional
-distribution u, the residual and the innovation covariance.
+Joseph form correction step of a Kalman filter with `prior` state
+and `obs` the observation with observation kernel
+`obskernel = kernel(Gaussian; μ=LinearMap(H), Σ=ConstantMap(R))`
+`H` is the observation operator and `R` the observation covariance. Returns corrected/conditional
+distribution `u`, the residual and the innovation covariance.
 See https://en.wikipedia.org/wiki/Kalman_filter#Update.
 """
-function correct(u::T, k::Kernel{T2,NamedTuple{(:μ, :Σ),Tuple{A, C}}}, y) where {T, T2#=<:Gaussian=#, A<:AffineMap, C<:ConstantMap}
+function correct(u::T, k::Kernel{T2,NamedTuple{(:μ, :Σ),Tuple{A, C}}}, y) where {T, T2#=<:Gaussian=#, A<:LinearMap, C<:ConstantMap}
     x, Ppred = meancov(u)
-    H, y0 = k.ops.μ.B, k.ops.μ.β
+    H = k.ops.μ.B
     R = k.ops.Σ.x
 
     yres = y - H*x # innovation residual
-    @show H,Ppred, R
     S = (H*Ppred*H' + R) # innovation covariance
 
     K = Ppred*H'/S # Kalman gain
