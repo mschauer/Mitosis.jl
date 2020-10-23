@@ -26,6 +26,8 @@ end
 
 const LinearGaussianKernel =  Kernel{T,NamedTuple{(:μ, :Σ),Tuple{A, C}}} where {T<:Gaussian, A<:LinearMap, C<:ConstantMap}
 
+params(k::LinearGaussianKernel) = k.ops.μ.B, k.ops.Σ.x
+
 """
     correct(prior, obskernel, obs) = u, yres, S
 

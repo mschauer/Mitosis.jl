@@ -1,5 +1,11 @@
-function right′(k::GaussKernel, a::GaussianOrNdTuple{(:mu, :Σ)})
-
+function right′(k::LinearGaussianKernel, q::GaussianOrNdTuple{(:μ, :Σ)})
+	ν, Σ = q.μ, q.Σ
+	B, Q = params(k)
+	B⁻¹ = inv(B)
+    νp = B⁻¹*ν
+    Σp = B⁻¹*(Σ + Q)*B⁻¹'
+    #c = c + logdet(B*B')/2
+    q, Gaussian{(:μ,:Σ)}(νp, Σp)
 end
 
 function right′(::BFFG, k::GaussKernel, a)

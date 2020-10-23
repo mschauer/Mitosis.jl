@@ -12,6 +12,8 @@ Gaussian{P}(;args...) where {P} = Gaussian{P}(args.data)
 Gaussian(par::NamedTuple{(:μ,:Σ),Tuple{T,S}}) where {T<:Gaussian,S} = Gaussian((;μ = mean(par.μ),Σ=par.Σ +cov(par.μ)))
 Gaussian{P}(par::NamedTuple{(:μ,:Σ),Tuple{T,S}}) where {P,T<:Gaussian,S} = Gaussian{P}((;μ = mean(par.μ),Σ=par.Σ +cov(par.μ)))
 
+Base.getproperty(p::Gaussian, s::Symbol) = getproperty(getfield(p, :par), s)
+
 const GaussianOrNdTuple{P} = Union{Gaussian{P},NamedTuple{P}}
 
 Base.keys(p::Gaussian{P}) where {P} = P
@@ -22,20 +24,20 @@ Base.:(==)(p1::Gaussian, p2::Gaussian) = mean(p1) == mean(p2) && cov(p1) == cov(
 Base.isapprox(p1::Gaussian, p2::Gaussian; kwargs...) =
     isapprox(mean(p1), mean(p2); kwargs...) && isapprox(cov(p1), cov(p2); kwargs...)
 
-mean(p::Gaussian{(:μ, :Σ)}) = p.par.μ
-cov(p::Gaussian{(:μ, :Σ)})  = p.par.Σ
+mean(p::Gaussian{(:μ, :Σ)}) = p.μ
+cov(p::Gaussian{(:μ, :Σ)})  = p.Σ
 meancov(p) = mean(p), cov(p)
 
-precision(p::Gaussian{(:μ, :Σ)}) = inv(p.par.Σ)
+precision(p::Gaussian{(:μ, :Σ)}) = inv(p.Σ)
 
-mean(p::Gaussian{(:F, :Γ)}) = Γ\p.par.F
-cov(p::Gaussian{(:F, :Γ)}) = inv(p.par.Γ)
-precision(p::Gaussian{(:F, :Γ)}) = p.par.Γ
+mean(p::Gaussian{(:F, :Γ)}) = Γ\p.F
+cov(p::Gaussian{(:F, :Γ)}) = inv(p.Γ)
+precision(p::Gaussian{(:F, :Γ)}) = p.Γ
 
-dim(p::Gaussian{(:F, :Γ)}) = length(p.par.F)
+dim(p::Gaussian{(:F, :Γ)}) = length(p.F)
 dim(p::Gaussian) = length(mean(p))
-whiten(p::Gaussian{(:μ, :Σ)}, x) = cholesky(p.par.Σ).U'\(x - p.par.μ)
-unwhiten(p::Gaussian{(:μ, :Σ)}, z) = cholesky(p.par.Σ).U'*z + p.par.μ
+whiten(p::Gaussian{(:μ, :Σ)}, x) = cholesky(p.Σ).U'\(x - p.μ)
+unwhiten(p::Gaussian{(:μ, :Σ)}, z) = cholesky(p.Σ).U'*z + p.μ
 sqmahal(p::Gaussian, x) = norm_sqr(whiten(p, x))
 
 rand(p::Gaussian) = rand(Random.GLOBAL_RNG, p)
@@ -72,6 +74,6 @@ Conditional distribution of `X[i for i in A]` given
 `X[i for i in B] == xB` if ``X ~ P``.
 """
 function conditional(p::Gaussian{(:μ, :Σ)}, A, B, xB)
-    Z = p.par.Σ[A,B]*inv(p.par.Σ[B,B])
-    Gaussian{(:μ, :Σ)}(μ = p.par.μ[A] + Z*(xB - p.par.μ[B]), Σ = p.par.Σ[A,A] - Z*p.par.Σ[B,A])
+    Z = p.Σ[A,B]*inv(p.Σ[B,B])
+    Gaussian{(:μ, :Σ)}(μ = p.μ[A] + Z*(xB - p.μ[B]), Σ = p.Σ[A,A] - Z*p.Σ[B,A])
 end

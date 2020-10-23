@@ -2,7 +2,7 @@
 using Mitosis
 
 
-using Mitosis: kernel, correct, Kernel, Gaussian, ConstantMap, AffineMap, LinearMap, GaussKernel
+using Mitosis: meancov, kernel, correct, Kernel, Gaussian, ConstantMap, AffineMap, LinearMap, GaussKernel
 using Random, Test, LinearAlgebra, Statistics
 
 Random.seed!(1)
@@ -32,6 +32,7 @@ Noise = Gaussian(μ=zero(yshadow),Σ=R)
 
 transition = kernel(Gaussian; μ=AffineMap(Φ, β), Σ=ConstantMap(Q))
 transition2 = kernel(Gaussian; μ=AffineMap(Φ, 0β), Σ=ConstantMap(Q))
+transition1 = kernel(Gaussian; μ=LinearMap(Φ), Σ=ConstantMap(Q))
 
 observation = kernel(Gaussian; μ=LinearMap(H), Σ=ConstantMap(R))
 
@@ -115,4 +116,14 @@ end
 
         @test mean(p2f) ≈ mean(π2)
         @test cov(p2f) ≈ cov(π2)
+end
+
+
+@testset "right' linear gaussian case" begin
+        p0 = right′(transition1, p1)[2]
+
+        ν, P = meancov(p0)
+
+        @test mean(transition1(ν)) ≈ mean(p1)
+        @test Φ*cov(p0)*Φ' ≈ (cov(p1) + Q)
 end

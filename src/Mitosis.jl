@@ -1,5 +1,6 @@
 module Mitosis
 
+using Statistics
 using LinearAlgebra
 using Random
 using MeasureTheory
