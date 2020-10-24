@@ -1,5 +1,6 @@
 module Mitosis
 
+using UnPack
 using Statistics
 using LinearAlgebra
 using Random
@@ -40,11 +41,7 @@ by mean and covariance of the backward filtered marginal distribution.
 struct BF <: Context
 end
 
-inner(x) = dot(x,x)
-outer(x) = x*x'
-
-_logdet(Σ, d::Integer) = LinearAlgebra.logdet(Σ)
-
+include("linearalgebra.jl")
 
 macro F(f) :(::typeof($f)) end
 
@@ -54,7 +51,6 @@ function right′
 end
 backwardfilter(k, a) = right′(BFFG(), k, a)
 forwardsampler(k, u, z, m) = left′(BFFG(), k, u, z, m)
-sym(x) = Symmetric(x)
 
 
 struct Traced{T}

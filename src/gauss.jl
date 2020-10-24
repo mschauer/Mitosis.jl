@@ -37,8 +37,10 @@ precision(p::Gaussian{(:F, :Γ)}) = p.Γ
 norm_sqr(x) = dot(x,x)
 dim(p::Gaussian{(:F, :Γ)}) = length(p.F)
 dim(p::Gaussian) = length(mean(p))
-whiten(p::Gaussian{(:μ, :Σ)}, x) = cholesky(p.Σ).U'\(x - p.μ)
-unwhiten(p::Gaussian{(:μ, :Σ)}, z) = cholesky(p.Σ).U'*z + p.μ
+whiten(p::Gaussian{(:μ, :Σ)}, x) = lchol(p.Σ)\(x - p.μ)
+unwhiten(p::Gaussian{(:μ, :Σ)}, z) = lchol(p.Σ)*z + p.μ
+whiten(p::Gaussian{(:Σ,)}, x) = lchol(p.Σ)\x
+unwhiten(p::Gaussian{(:Σ,)}, z) = lchol(p.Σ)*z
 sqmahal(p::Gaussian, x) = norm_sqr(whiten(p, x))
 
 rand(p::Gaussian) = rand(Random.GLOBAL_RNG, p)
@@ -47,12 +49,6 @@ _logdet(p::Gaussian{(:μ,:Σ)}) = _logdet(p.Σ, dim(p))
 MeasureTheory.logdensity(p::Gaussian, x) = -(sqmahal(p,x) + _logdet(p) + dim(p)*log(2pi))/2
 MeasureTheory.density(p::Gaussian, x) = exp(logpdf(p, x))
 
-## WeightedGaussian
-
-weight(μ) = 0.0
-weight(μ::ScaledMeasure) = logscale(μ)
-weightedgaussian(c; args...) = MeasureTheory.ScaledMeasure(logscale, Gaussian(; args...))
-wgaussian_params(p::Gaussian) = weight(p), cov(p), mean(p)
 
 ## Algebra
 

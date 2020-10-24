@@ -7,10 +7,8 @@ function right′(::BF, k::LinearGaussianKernel, q::Gaussian{(:μ, :Σ)})
     q, Gaussian{(:μ,:Σ)}(νp, Σp)
 end
 
-function right′(::BFFG, k::LinearGaussianKernel, q::WGaussian{(:F, :Γ, :c)})
-	F = q.F
-	Γ = q.Γ
-	c = q.c
+function right′(::BFFG, k::LinearGaussianKernel, q::WGaussian{(:F,:Γ,:c)})
+	@unpack F, Γ, c = q
     # Theorem 7.1 [Automatic BFFG]
 	B, Q = params(k)
 	Σ = inv(Γ) # requires invertibility of Γ
@@ -43,9 +41,10 @@ function left′(::BFFG, k::GaussKernel, (l, x), z, m)
 	return nothing, (l + c, x + μᵒ + chol(Qᵒ)*z)
 end
 
-function right′(::BFFG, ::Copy, a, b)
-	c1, Q, x = wgaussian_params(a)
-	c2, Σ, ν = wgaussian_params(b)
+logpdf0(x, P) = logdensity(Gaussian{(:Σ,)}(P), x)
+function right′(::BFFG, ::Copy, a::WGaussian{(:F, :Γ, :c)}, b::WGaussian{(:F, :Γ, :c)})
+	c1, Q, x = a.c, inv(a.Γ), a.Γ\a.F
+	c2, Σ, ν = b.c, inv(b.Γ), b.Γ\b.F
 	S = Q + Σ # innovation covariance
 	K = Q/S # Kalman gain
 	x = x + K*(ν - x)
@@ -53,5 +52,5 @@ function right′(::BFFG, ::Copy, a, b)
 	Δ = logpdf0(x, P) - logpdf0(x, Q) - logpdf0(v, Σ)
 	H = inv(P)
 	m = ()
-	m, weightedgaussian(Δ + c1 + c2, H*x, H)
+	m, WGaussian{(:F,:Γ,:c)}(H*x, H, Δ + c1 + c2)
 end
