@@ -2,7 +2,7 @@
 using Mitosis
 
 
-using Mitosis: BF, logdensity, ⊕, meancov, kernel, correct, Kernel, WGaussian, Gaussian, ConstantMap, AffineMap, LinearMap, GaussKernel
+using Mitosis: meancov
 using Random, Test, LinearAlgebra, Statistics
 
 Random.seed!(1)
@@ -145,3 +145,12 @@ end
 
     @test 0.0 ≈ -logdet(pp.Σ)/2 - (q0.c + logdet(q0.Γ)/2) atol=1e-10
 end
+
+
+#@testset "Backward filter" begin
+p2a = backwardfilter(observation, y2)
+
+#    p0f = correct(p0, observation, y0)[1]
+#    p1p = transition2(p0f)
+#    p1f = correct(p1p, observation, y1)[1]
+#    p2f = correct(p2p, observation, y2)[1]

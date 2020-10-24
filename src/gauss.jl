@@ -72,5 +72,5 @@ Conditional distribution of `X[i for i in A]` given
 """
 function conditional(p::Gaussian{(:μ, :Σ)}, A, B, xB)
     Z = p.Σ[A,B]*inv(p.Σ[B,B])
-    Gaussian{(:μ, :Σ)}(μ = p.μ[A] + Z*(xB - p.μ[B]), Σ = p.Σ[A,A] - Z*p.Σ[B,A])
+    Gaussian{(:μ, :Σ)}(p.μ[A] + Z*(xB - p.μ[B]), p.Σ[A,A] - Z*p.Σ[B,A])
 end

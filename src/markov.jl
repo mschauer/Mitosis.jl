@@ -1,7 +1,7 @@
 import MeasureTheory.Kernel, MeasureTheory.kernel
 
 const GaussKernel = MeasureTheory.Kernel{<:Gaussian}
-const Copy = MeasureTheory.Kernel{<:Dirac}
+#const Copy = MeasureTheory.Kernel{<:Dirac}
 
 struct AffineMap{S,T}
     B::S
@@ -25,8 +25,9 @@ end
 (a::ConstantMap)(x) = a.x
 
 const LinearGaussianKernel =  Kernel{T,NamedTuple{(:μ, :Σ),Tuple{A, C}}} where {T<:Gaussian, A<:LinearMap, C<:ConstantMap}
-
-params(k::LinearGaussianKernel) = k.ops.μ.B, k.ops.Σ.x
+params(k::LinearGaussianKernel) = k.ops.μ.B, Zero(), k.ops.Σ.x
+const AffineGaussianKernel =  Kernel{T,NamedTuple{(:μ, :Σ),Tuple{A, C}}} where {T<:Gaussian, A<:AffineMap, C<:ConstantMap}
+params(k::AffineGaussianKernel) = k.ops.μ.B, k.ops.μ.β, k.ops.Σ.x
 
 """
     correct(prior, obskernel, obs) = u, yres, S

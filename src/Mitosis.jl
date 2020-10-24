@@ -10,9 +10,9 @@ using MeasureTheory: AbstractMeasure, ScaledMeasure
 
 import Base: iterate, length
 
-export Gaussian
+export Gaussian, Copy
 export Traced, BFFG, left′, right′, backwardfilter, forwardsampler
-
+export BF, logdensity, ⊕, kernel, correct, Kernel, WGaussian, Gaussian, ConstantMap, AffineMap, LinearMap, GaussKernel
 
 
 function independent_sum
@@ -44,6 +44,12 @@ end
 include("linearalgebra.jl")
 
 macro F(f) :(::typeof($f)) end
+struct Leaf{T}
+    y::T
+end
+struct Copy{N}
+end
+(a::Copy{2})(x) = (x, x)
 
 function left′
 end
@@ -51,7 +57,7 @@ function right′
 end
 backwardfilter(k, a) = right′(BFFG(), k, a)
 forwardsampler(k, u, z, m) = left′(BFFG(), k, u, z, m)
-
+fuse(args::NTuple{N}...) where {N} = right′(BFFG(), Copy{N}(), args...)
 
 struct Traced{T}
     x::T
