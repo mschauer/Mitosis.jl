@@ -153,9 +153,21 @@ end
     @test 0.0 ≈ -logdet(pp.Σ)/2 - (q0.c + logdet(q0.Γ)/2) atol=1e-10
 end
 
+#=
+# Next we consider the following model, in Soss notation
+m = @model ξ0 begin
+           x0 ~ MvNormal(ξ0, P0) # priortransition
+           y0 ~ MvNormal(H*x0, R) # observation
+           x1 ~ MvNormal(Φ*x0, Q) # transition2
+           y1 ~ MvNormal(H*x1, R) # observation
+           x2 ~ MvNormal(Φ*x1, Q) # transition2
+           return y0, y1, x2
+end
+=#
+
 @testset "Backward filter with fusion" begin
     # forward model
-    x0 = rand(prior)
+    x0 = rand(priortransition(ξ0))
     y0 = rand(observation(x0))
     x1 = rand(transition(x0))
     y1 = rand(observation(x1))
@@ -167,21 +179,25 @@ end
     m1, p1 = fuse(p1a, p1b)
     m0a, p0a = backwardfilter(observation, y0; unfused=true)
     m0b, p0b = backwardfilter(transition2, p1; unfused=true)
-    prior_ = WGaussian{(:F,:Γ,:c)}(P0\ξ0, inv(P0), 0.0)
-    m0, p0 = fuse(p0a, p0b, prior_)
+    m0, p0 = fuse(p0a, p0b)
+    m, evi = backwardfilter(priortransition, p0)
 
-    # p0 is the conditional distribution of x0
-    π0 = Mitosis.conditional(Gaussian(;μ=μ, Σ=Σ), 1:2, 5:8, vcat(x2, y0, y1))
-    @test mean(π0) ≈ mean(p0)
-    @test cov(π0) ≈ cov(p0)
-
-    # as byproduct compute the model evidence
-    m0_, p0_ = fuse(p0a, p0b)
-    m, evi = backwardfilter(priortransition, p0_)
+    # as byproduct this just computed the model evidence as function
+    # of ξ0
     @test logdensity(evi, ξ0) ≈ logdensity(Gaussian(;μ=μ[5:8], Σ=Σ[5:8,5:8]), vcat(x2, y0, y1))
 
+
+    # Alternative: p0_ is the conditional distribution of x0
+    prior_ = WGaussian{(:F,:Γ,:c)}(P0\ξ0, inv(P0), 0.0)
+    m0_, p0_ = fuse(p0a, p0b, prior_)
+    π0 = Mitosis.conditional(Gaussian(;μ=μ, Σ=Σ), 1:2, 5:8, vcat(x2, y0, y1))
+    @test mean(π0) ≈ mean(p0_)
+    @test cov(π0) ≈ cov(p0_)
+
+
+
     # alternative with fusion
-    _, evi_ = backwardfilter(priortransition, p0_; unfused=true)
+    _, evi_ = backwardfilter(priortransition, p0; unfused=true)
     _, evi2 = fuse(evi_)
     @test evi2 ≈ evi
 
