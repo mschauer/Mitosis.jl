@@ -6,6 +6,9 @@ lchol(Σ) = cholesky(sym(Σ)).U'
 
 struct Zero <: AbstractVector{Bool}
 end
-Base.:+(x::Vector, z::Zero) = x
-Base.:-(x::Vector, z::Zero) = x
+Base.:+(x::AbstractVector, z::Zero) = x
+Base.:+(z::Zero, x::AbstractVector) = x
+
+Base.:*(x::AbstractMatrix, z::Zero) = z
+Base.:-(x::AbstractVector, z::Zero) = x
 flat(x) = collect(Iterators.flatten(x))

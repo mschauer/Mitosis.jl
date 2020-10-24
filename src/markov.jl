@@ -9,6 +9,7 @@ struct AffineMap{S,T}
 end
 (a::AffineMap)(x) = a.B*x + a.β
 (a::AffineMap)(p::Gaussian) = Gaussian(μ = a.B*mean(p) + a.β, Σ = a.B*cov(p)*a.B')
+(a::AffineMap)(p::WGaussian) = WGaussian(μ = a.B*mean(p) + a.β, Σ = a.B*cov(p)*a.B', c=p.c)
 
 
 struct LinearMap{T}
@@ -16,6 +17,7 @@ struct LinearMap{T}
 end
 (a::LinearMap)(x) = a.B*x
 (a::LinearMap)(p::Gaussian) = Gaussian(μ = a.B*mean(p), Σ = a.B*cov(p)*a.B')
+(a::LinearMap)(p::WGaussian) = WGaussian(μ = a.B*mean(p), Σ = a.B*cov(p)*a.B', c=p.c)
 
 
 

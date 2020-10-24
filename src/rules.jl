@@ -45,6 +45,19 @@ function right′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, y
     message, WGaussian{(:F,:Γ,:c)}(Fp, Γp, cp)
 end
 
+function left′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, m::WGaussian{(:F,:Γ,:c)})
+    @unpack F, Γ, c = m
+    B, β, Q = params(k)
+
+    Q⁻ = inv(Q)
+    Qᵒ = inv(Q⁻ + Γ)
+    #μᵒ = Qᵒ*(Q⁻*(B*x + β) + F)
+    Bᵒ = Qᵒ*Q⁻*B
+    βᵒ = Qᵒ*(Q⁻*β + F)
+
+    kernel(WGaussian; μ=AffineMap(Bᵒ, βᵒ), Σ=ConstantMap(Qᵒ), c=ConstantMap(0.0))
+end
+
 function right′(::BFFG, k::GaussKernel, a)
 	(c, F, H) = wgaussian_params(a)
 	y, B, β = approx(k.ops[1], F, H)   # linearise mean function
@@ -64,20 +77,6 @@ function left′(::BFFG, k::GaussKernel, (l, x), z, m)
 	return nothing, (l + c, x + μᵒ + chol(Qᵒ)*z)
 end
 
-#=
-function right′(::BFFG, ::Copy, a::WGaussian{(:F, :Γ, :c)}, b::WGaussian{(:F, :Γ, :c)})
-	c1, Q, x = a.c, inv(a.Γ), a.Γ\a.F
-	c2, Σ, ν = b.c, inv(b.Γ), b.Γ\b.F
-	S = Q + Σ # innovation covariance
-	K = Q/S # Kalman gain
-	x = x + K*(ν - x)
-	P = (I - K)*Q
-	Δ = logpdf0(x, P) #- logpdf0(x, Q) - logpdf0(v, Σ)
-	H = inv(P)
-	m = ()
-	m, WGaussian{(:F,:Γ,:c)}(H*x, H, Δ + c1 + c2)
-end
-=#
 
 
 function right′(::BFFG, ::Copy, a::WGaussian{(:F, :Γ, :c)}, args...)
@@ -91,4 +90,8 @@ function right′(::BFFG, ::Copy, a::WGaussian{(:F, :Γ, :c)}, args...)
 	Δ = -logdensity(Gaussian{(:F,:Γ)}(F, H), 0F)
 	m = ()
 	m, WGaussian{(:F,:Γ,:c)}(F, H, Δ + c)
+end
+
+function left′(::BFFG, ::Copy{2}, (l, x), _, m)
+    (l, x), (0l, x)
 end

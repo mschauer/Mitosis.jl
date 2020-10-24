@@ -8,6 +8,9 @@ WGaussian{P}(args...) where {P} = WGaussian(NamedTuple{P}(args))
 WGaussian(;args...) = WGaussian(args.data)
 WGaussian{P}(;args...) where {P} = WGaussian{P}(args.data)
 
+# the following propagates uncertainty if `μ` is `Gaussian`
+WGaussian(par::NamedTuple{(:μ,:Σ,:c),Tuple{T,S,U}}) where {T<:WGaussian,S,U} = WGaussian((;μ=mean(par.μ), Σ=par.Σ +cov(par.μ), c=par.c + par.μ.c))
+WGaussian{P}(par::NamedTuple{(:μ,:Σ,:c),Tuple{T,S,U}}) where {P,T<:WGaussian,S,U} = WGaussian{P}(mean(par.μ), par.Σ + cov(par.μ), par.c + par.μ.c)
 
 Base.getproperty(p::WGaussian, s::Symbol) = getproperty(getfield(p, :par), s)
 
@@ -17,6 +20,9 @@ Base.keys(p::WGaussian{P}) where {P} = P
 params(p::WGaussian) = getfield(p, :par)
 
 dim(p::WGaussian{(:F, :Γ, :c)}) = length(p.F)
+
+mean(p::WGaussian{(:μ, :Σ, :c)}) = p.μ
+cov(p::WGaussian{(:μ, :Σ, :c)}) = p.Σ
 
 mean(p::WGaussian{(:F, :Γ, :c)}) = p.Γ\p.F
 cov(p::WGaussian{(:F, :Γ, :c)}) = inv(p.Γ)

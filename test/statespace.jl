@@ -176,14 +176,34 @@ end
     @test cov(π0) ≈ cov(p0)
 
     # as byproduct compute the model evidence
-    _, p0_ = fuse(p0a, p0b)
-    _, evi = backwardfilter(priortransition, p0_)
+    m0_, p0_ = fuse(p0a, p0b)
+    m, evi = backwardfilter(priortransition, p0_)
     @test logdensity(evi, ξ0) ≈ logdensity(Gaussian(;μ=μ[5:8], Σ=Σ[5:8,5:8]), vcat(x2, y0, y1))
 
     # alternative with fusion
     _, evi_ = backwardfilter(priortransition, p0_; unfused=true)
     _, evi2 = fuse(evi_)
     @test evi2 ≈ evi
+
+    # run forward marginal smoother
+    kᵒ = left′(BFFG(), priortransition, m)
+    p0ᵒ = kᵒ(ξ0)
+    # skip copy
+    k0ᵒ = left′(BFFG(), transition2, m0b)
+    p1ᵒ = k0ᵒ(p0ᵒ)
+
+
+
+
+    # first step gives the conditional marginal of x0
+    @test mean(π0) ≈ mean(p0ᵒ)
+    @test cov(π0) ≈ cov(p0ᵒ)
+
+    # second step gives the conditional marginal of x1
+    π1 = Mitosis.conditional(Gaussian(;μ=μ, Σ=Σ), 3:4, 5:8, vcat(x2, y0, y1))
+    @test mean(π1) ≈ mean(p1ᵒ)
+    @test cov(π1) ≈ cov(p1ᵒ)
+
 
     # some more tests
     @test logdensity(backwardfilter(transition2, x2)[2], x1) ≈ logdensity(transition2(x1), x2)
