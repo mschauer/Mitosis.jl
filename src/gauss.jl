@@ -18,7 +18,7 @@ Base.getproperty(p::Gaussian, s::Symbol) = getproperty(getfield(p, :par), s)
 const GaussianOrNdTuple{P} = Union{Gaussian{P},NamedTuple{P}}
 
 Base.keys(p::Gaussian{P}) where {P} = P
-
+params(p::Gaussian) = getfield(p, :par)
 ## Basics
 
 Base.:(==)(p1::Gaussian, p2::Gaussian) = mean(p1) == mean(p2) && cov(p1) == cov(p2)
@@ -26,6 +26,7 @@ Base.isapprox(p1::Gaussian, p2::Gaussian; kwargs...) =
     isapprox(mean(p1), mean(p2); kwargs...) && isapprox(cov(p1), cov(p2); kwargs...)
 
 mean(p::Gaussian{(:μ, :Σ)}) = p.μ
+mean(p::Gaussian{(:Σ,)}) = Zero()
 cov(p::Gaussian{(:μ, :Σ)})  = p.Σ
 meancov(p) = mean(p), cov(p)
 
@@ -37,6 +38,7 @@ precision(p::Gaussian{(:F, :Γ)}) = p.Γ
 norm_sqr(x) = dot(x,x)
 dim(p::Gaussian{(:F, :Γ)}) = length(p.F)
 dim(p::Gaussian) = length(mean(p))
+dim(p::Gaussian{(:Σ,)}) = size(p.Σ, 1)
 whiten(p::Gaussian{(:μ, :Σ)}, x) = lchol(p.Σ)\(x - p.μ)
 unwhiten(p::Gaussian{(:μ, :Σ)}, z) = lchol(p.Σ)*z + p.μ
 whiten(p::Gaussian{(:Σ,)}, x) = lchol(p.Σ)\x
@@ -46,9 +48,13 @@ sqmahal(p::Gaussian, x) = norm_sqr(whiten(p, x))
 rand(p::Gaussian) = rand(Random.GLOBAL_RNG, p)
 rand(RNG::AbstractRNG, p::Gaussian) = unwhiten(p, randn!(RNG, zero(mean(p))))
 _logdet(p::Gaussian{(:μ,:Σ)}) = _logdet(p.Σ, dim(p))
+_logdet(p::Gaussian{(:Σ,)}) = logdet(p.Σ)
 MeasureTheory.logdensity(p::Gaussian, x) = -(sqmahal(p,x) + _logdet(p) + dim(p)*log(2pi))/2
 MeasureTheory.density(p::Gaussian, x) = exp(logpdf(p, x))
-
+function MeasureTheory.logdensity(p::Gaussian{(:F,:Γ)}, x)
+    C = cholesky(sym(p.Γ))
+    -x'*p.Γ*x/2 + x'*p.F - p.F'*(C\p.F)/2  + logdet(C)/2 - dim(p)*log(2pi)/2
+end
 
 ## Algebra
 

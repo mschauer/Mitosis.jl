@@ -14,9 +14,16 @@ Base.getproperty(p::WGaussian, s::Symbol) = getproperty(getfield(p, :par), s)
 const WGaussianOrNdTuple{P} = Union{WGaussian{P},NamedTuple{P}}
 
 Base.keys(p::WGaussian{P}) where {P} = P
+params(p::WGaussian) = getfield(p, :par)
 
 dim(p::WGaussian{(:F, :Γ, :c)}) = length(p.F)
 
+mean(p::WGaussian{(:F, :Γ, :c)}) = p.Γ\p.F
+cov(p::WGaussian{(:F, :Γ, :c)}) = inv(p.Γ)
+moment1(p::WGaussian{(:F, :Γ, :c)}) = p.c*p.Γ\p.F
+
+Base.isapprox(p1::WGaussian, p2::WGaussian; kwargs...) =
+    all(isapprox.(Tuple(params(p1)), Tuple(params(p2)); kwargs...))
 
 function MeasureTheory.logdensity(p::WGaussian{(:F,:Γ,:c)}, x)
     C = cholesky(sym(p.Γ))

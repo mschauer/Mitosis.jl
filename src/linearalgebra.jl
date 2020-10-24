@@ -8,3 +8,4 @@ struct Zero <: AbstractVector{Bool}
 end
 Base.:+(x::Vector, z::Zero) = x
 Base.:-(x::Vector, z::Zero) = x
+flat(x) = collect(Iterators.flatten(x))

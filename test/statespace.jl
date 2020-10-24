@@ -1,8 +1,10 @@
-#using Revise
+if !@isdefined TEST
+    using Revise
+end
 using Mitosis
 
 
-using Mitosis: meancov
+using Mitosis: meancov, flat
 using Random, Test, LinearAlgebra, Statistics
 
 Random.seed!(1)
@@ -14,8 +16,9 @@ K = 10000 # repetitions
 # x[k] = Φx[k−1] + w[k],    w[k] ∼ N(0, Q)
 # y[k] = Hx[k] + v[k],    v[k] ∼ N(0, R)
 
-x0 = [1., 0.]
+ξ0 = [1., 0.]
 P0 = Matrix(1.0I, 2, 2)
+prior = Gaussian{(:μ,:Σ)}(ξ0, P0)
 
 Φ = [0.8 0.5; -0.1 0.8]
 β = [0.1, 0.2]
@@ -24,11 +27,15 @@ Q = [0.2 0.0; 0.0 1.0]
 yshadow = [0.0]
 H = [1.0 0.0]
 R = Matrix(1.0I, 1, 1)
-INoise = Gaussian(μ=zero(x0), Σ=Q)
+INoise = Gaussian(μ=zero(ξ0), Σ=Q)
 Noise = Gaussian(μ=zero(yshadow),Σ=R)
 
-@test AffineMap(Φ, β)(x0) == Φ*x0 + β
-@test ConstantMap(β)(x0) == β
+@test AffineMap(Φ, β)(ξ0) == Φ*ξ0 + β
+@test ConstantMap(β)(ξ0) == β
+
+
+priortransition = kernel(Gaussian; μ=LinearMap(I(2)), Σ=ConstantMap(P0))
+@test priortransition(ξ0) ≈ prior
 
 transition = kernel(Gaussian; μ=AffineMap(Φ, β), Σ=ConstantMap(Q))
 transition2 = kernel(Gaussian; μ=AffineMap(Φ, 0β), Σ=ConstantMap(Q))
@@ -36,10 +43,11 @@ transition1 = kernel(Gaussian; μ=LinearMap(Φ), Σ=ConstantMap(Q))
 
 observation = kernel(Gaussian; μ=LinearMap(H), Σ=ConstantMap(R))
 
-@test 10/sqrt(K) > norm(Φ*x0 + β - mean(rand(transition(x0)) for x in 1:K))
+@test 10/sqrt(K) > norm(Φ*ξ0 + β - mean(rand(transition(ξ0)) for x in 1:K))
 
 @test transition.ops isa NamedTuple{(:μ, :Σ)}
 
+x0 = rand(prior)
 y0 = rand(observation(x0))
 
 x1 = rand(transition(x0))
@@ -48,9 +56,10 @@ y1 = rand(observation(x1))
 x2 = rand(transition(x1))
 y2 = rand(observation(x2))
 
-p0 = Gaussian(μ=x0, Σ=P0)
+p0 = Gaussian(μ=ξ0, Σ=P0)
 
-@test mean(AffineMap(Φ, β)(p0)) == Φ*x0 + β
+
+@test mean(AffineMap(Φ, β)(p0)) == Φ*ξ0 + β
 @test cov(AffineMap(Φ, β)(p0)) == Φ*P0*Φ'
 
 
@@ -65,15 +74,13 @@ p2 = transition2(p1)
 @test cov(p2) == Φ*(Φ*P0*Φ' + Q)*Φ' + Q
 q2 = observation(p2)
 
-flat(x) = collect(Iterators.flatten(x))
-
 
 # Check that this is all correct:
 
 # Write down joint distribution of x's and y's by hand... (yes I am fine ;-))
 # Define mean and covariance of the flattened vector of states and observations [x0 x1 x2 y0 y1 y2]
 μ_ = [1.0, 0.0, 0.8, -0.1, 0.59, -0.16, 1.0, 0.8, 0.59]
-μ = [ x0; Φ*x0; Φ*Φ*x0; H*x0; H*Φ*x0; H*Φ*Φ*x0; ]
+μ = [ ξ0; Φ*ξ0; Φ*Φ*ξ0; H*ξ0; H*Φ*ξ0; H*Φ*Φ*ξ0; ]
 @test μ_ ≈ μ
 
 
@@ -146,11 +153,44 @@ end
     @test 0.0 ≈ -logdet(pp.Σ)/2 - (q0.c + logdet(q0.Γ)/2) atol=1e-10
 end
 
+@testset "Backward filter with fusion" begin
+    # forward model
+    x0 = rand(prior)
+    y0 = rand(observation(x0))
+    x1 = rand(transition(x0))
+    y1 = rand(observation(x1))
+    x2 = rand(transition(x1))
 
-#@testset "Backward filter" begin
-p2a = backwardfilter(observation, y2)
+    # run backward filter
+    m1a, p1a = backwardfilter(observation, y1; unfused=true)
+    m1b, p1b = backwardfilter(transition2, x2; unfused=true)
+    m1, p1 = fuse(p1a, p1b)
+    m0a, p0a = backwardfilter(observation, y0; unfused=true)
+    m0b, p0b = backwardfilter(transition2, p1; unfused=true)
+    prior_ = WGaussian{(:F,:Γ,:c)}(P0\ξ0, inv(P0), 0.0)
+    m0, p0 = fuse(p0a, p0b, prior_)
 
-#    p0f = correct(p0, observation, y0)[1]
-#    p1p = transition2(p0f)
-#    p1f = correct(p1p, observation, y1)[1]
-#    p2f = correct(p2p, observation, y2)[1]
+    # p0 is the conditional distribution of x0
+    π0 = Mitosis.conditional(Gaussian(;μ=μ, Σ=Σ), 1:2, 5:8, vcat(x2, y0, y1))
+    @test mean(π0) ≈ mean(p0)
+    @test cov(π0) ≈ cov(p0)
+
+    # as byproduct compute the model evidence
+    _, p0_ = fuse(p0a, p0b)
+    _, evi = backwardfilter(priortransition, p0_)
+    @test logdensity(evi, ξ0) ≈ logdensity(Gaussian(;μ=μ[5:8], Σ=Σ[5:8,5:8]), vcat(x2, y0, y1))
+
+    # alternative with fusion
+    _, evi_ = backwardfilter(priortransition, p0_; unfused=true)
+    _, evi2 = fuse(evi_)
+    @test evi2 ≈ evi
+
+    # some more tests
+    @test logdensity(backwardfilter(transition2, x2)[2], x1) ≈ logdensity(transition2(x1), x2)
+    @test logdensity(fuse(backwardfilter(transition2, x2; unfused=true)[2])[2], x1) ≈ logdensity(transition2(x1), x2)
+
+    _, q = fuse(backwardfilter(transition2, x2; unfused=true)[2], backwardfilter(transition2, x2; unfused=true)[2])
+    @test logdensity(q, x1) ≈ 2logdensity(transition2(x1), x2)
+    @test logdensity(p1, x1) ≈ logdensity(observation(x1), y1) + logdensity(transition2(x1), x2)
+
+end

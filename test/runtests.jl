@@ -1,9 +1,5 @@
 using Mitosis
 using Test
-
+const TEST = true
 include("gauss.jl")
 include("statespace.jl")
-
-@testset "Mitosis.jl" begin
-    # Write your own tests here.
-end

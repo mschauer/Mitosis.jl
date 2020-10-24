@@ -10,7 +10,7 @@ using MeasureTheory: AbstractMeasure, ScaledMeasure
 
 import Base: iterate, length
 
-export Gaussian, Copy
+export Gaussian, Copy, fuse
 export Traced, BFFG, left′, right′, backwardfilter, forwardsampler
 export BF, logdensity, ⊕, kernel, correct, Kernel, WGaussian, Gaussian, ConstantMap, AffineMap, LinearMap, GaussKernel
 
@@ -55,9 +55,11 @@ function left′
 end
 function right′
 end
-backwardfilter(k, a) = right′(BFFG(), k, a)
-forwardsampler(k, u, z, m) = left′(BFFG(), k, u, z, m)
-fuse(args::NTuple{N}...) where {N} = right′(BFFG(), Copy{N}(), args...)
+backwardfilter(k, a; args...) = right′(BFFG(), k, a; args...)
+forwardsampler(k, u, z, m; args...) = left′(BFFG(), k, u, z, m; args...)
+fuse(a) = right′(BFFG(), Copy{1}(), a)
+fuse(a,b) = right′(BFFG(), Copy{2}(), a, b)
+fuse(a,b,c) = right′(BFFG(), Copy{3}(), a, b, c)
 
 struct Traced{T}
     x::T
