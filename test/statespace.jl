@@ -2,7 +2,7 @@
 using Mitosis
 
 
-using Mitosis: logdensity, ⊕, meancov, kernel, correct, Kernel, WGaussian, Gaussian, ConstantMap, AffineMap, LinearMap, GaussKernel
+using Mitosis: BF, logdensity, ⊕, meancov, kernel, correct, Kernel, WGaussian, Gaussian, ConstantMap, AffineMap, LinearMap, GaussKernel
 using Random, Test, LinearAlgebra, Statistics
 
 Random.seed!(1)
@@ -120,7 +120,7 @@ end
 
 
 @testset "right' linear gaussian case" begin
-    p0 = right′(BFFG(), transition1, p1)[2]
+    p0 = right′(BF(), transition1, p1)[2]
 
     ν, P = meancov(p0)
 
@@ -143,5 +143,5 @@ end
     pp = transition1(x0)⊕Gaussian(μ=0*p1.μ, Σ=p1.Σ)
     @test logdensity(q0, x0) ≈ logdensity(pp, p1.μ)
 
-    @test 0.0 ≈ -logdet(pp.Σ)/2 - (p.c + logdet(q0.Γ)/2) atol=1e-10
+    @test 0.0 ≈ -logdet(pp.Σ)/2 - (q0.c + logdet(q0.Γ)/2) atol=1e-10
 end

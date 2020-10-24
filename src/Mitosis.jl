@@ -22,7 +22,22 @@ const ∅ = nothing
 
 abstract type Context end
 
+"""
+    BFFG()
+
+Backward filter forward guiding context for non-linear Gaussian
+systems with `h` parametrized by `WGaussian{(:F,:Γ,:c)}`` (see Theorem 7.1 [Automatic BFFG].)
+"""
 struct BFFG <: Context
+end
+
+"""
+    BF()
+
+Backward filter for linear Gaussian systems parametrized
+by mean and covariance of the backward filtered marginal distribution.
+"""
+struct BF <: Context
 end
 
 inner(x) = dot(x,x)
@@ -39,7 +54,7 @@ function right′
 end
 backwardfilter(k, a) = right′(BFFG(), k, a)
 forwardsampler(k, u, z, m) = left′(BFFG(), k, u, z, m)
-
+sym(x) = Symmetric(x)
 
 
 struct Traced{T}

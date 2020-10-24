@@ -19,7 +19,7 @@ dim(p::WGaussian{(:F, :Γ, :c)}) = length(p.F)
 
 
 function MeasureTheory.logdensity(p::WGaussian{(:F,:Γ,:c)}, x)
-    C = cholesky(p.Γ)
+    C = cholesky(sym(p.Γ))
     p.c - x'*p.Γ*x/2 + x'*p.F - p.F'*(C\p.F)/2  + logdet(C)/2 - dim(p)*log(2pi)/2
 end
 MeasureTheory.density(p::WGaussian, x) = exp(logpdf(p, x))
