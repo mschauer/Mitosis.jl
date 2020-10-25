@@ -22,17 +22,17 @@ jobs:
   exclude:
     - arch: x86
       os: osx
-  include:
-    - stage: Documentation
-      julia: 1
-      script: |
-        julia --project=docs -e '
-          using Pkg
-          Pkg.develop(PackageSpec(path=pwd()))
-          Pkg.add(url="https://github.com/cscherrer/MeasureTheory.jl",rev="mitosis")
-          Pkg.instantiate()
-          using Documenter: doctest
-          using Mitosis
-          doctest(Mitosis)
-          include("docs/make.jl")'
-      after_success: skip
+  # include:
+  #   - stage: Documentation
+  #     julia: 1
+  #     script: |
+  #       julia --project=docs -e '
+  #         using Pkg
+  #         Pkg.develop(PackageSpec(path=pwd()))
+  #         Pkg.add(url="https://github.com/cscherrer/MeasureTheory.jl",rev="mitosis")
+  #         Pkg.instantiate()
+  #         using Documenter: doctest
+  #         using Mitosis
+  #         doctest(Mitosis)
+  #         include("docs/make.jl")'
+  #     after_success: skip
