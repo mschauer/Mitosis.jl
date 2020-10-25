@@ -1,3 +1,7 @@
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://mschauer.github.io/Mitosis.jl/dev)
+[![Build Status](https://travis-ci.com/mschauer/Mitosis.jl.svg?branch=master)](https://travis-ci.com/mschauer/Mitosis.jl)
+
+
 # Mitosis.jl (work in progress)
 
 Incorporate discrete and continuous time Markov processes as building blocks into probabilistic graphical models.
