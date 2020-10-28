@@ -32,10 +32,10 @@ Base.isapprox(p1::WGaussian, p2::WGaussian; kwargs...) =
     all(isapprox.(Tuple(params(p1)), Tuple(params(p2)); kwargs...))
 
 function MeasureTheory.logdensity(p::WGaussian{(:F,:Γ,:c)}, x)
-    C = cholesky(sym(p.Γ))
+    C = cholesky_(sym(p.Γ))
     p.c - x'*p.Γ*x/2 + x'*p.F - p.F'*(C\p.F)/2  + logdet(C)/2 - dim(p)*log(2pi)/2
 end
-MeasureTheory.density(p::WGaussian, x) = exp(logpdf(p, x))
+density(p::WGaussian, x) = exp(logdensity(p, x))
 
 #=
 Base.:(==)(p1::WGaussian, p2::WGaussian) = mean(p1) == mean(p2) && cov(p1) == cov(p2)

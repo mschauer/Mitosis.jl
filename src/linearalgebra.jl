@@ -1,8 +1,12 @@
 inner(x) = dot(x,x)
 outer(x) = x*x'
 sym(x) = Symmetric(x)
+sym(x::Number) = x
 _logdet(Σ, d::Integer) = LinearAlgebra.logdet(Σ)
 lchol(Σ) = cholesky(sym(Σ)).U'
+lchol(Σ::Number) = sqrt(Σ)
+cholesky_(x) = cholesky(x)
+cholesky_(x::Number) = x
 
 struct Zero <: AbstractVector{Bool}
 end

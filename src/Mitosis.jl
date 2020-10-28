@@ -7,12 +7,12 @@ using Random
 using MeasureTheory
 
 using MeasureTheory: AbstractMeasure, ScaledMeasure
-
+import MeasureTheory: density, logdensity
 import Base: iterate, length
 
 export Gaussian, Copy, fuse
 export Traced, BFFG, left′, right′, backwardfilter, forwardsampler
-export BF, logdensity, ⊕, kernel, correct, Kernel, WGaussian, Gaussian, ConstantMap, AffineMap, LinearMap, GaussKernel
+export BF, density, logdensity, ⊕, kernel, correct, Kernel, WGaussian, Gaussian, ConstantMap, AffineMap, LinearMap, GaussKernel
 
 
 function independent_sum
