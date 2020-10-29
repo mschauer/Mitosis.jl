@@ -58,23 +58,24 @@ function left′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, m:
     kernel(WGaussian; μ=AffineMap(Bᵒ, βᵒ), Σ=ConstantMap(Qᵒ), c=ConstantMap(0.0))
 end
 
-function right′(::BFFG, k::GaussKernel, a)
-    (c, F, H) = wgaussian_params(a)
-    y, B, β = approx(k.ops[1], F, H)   # linearise mean function
-    Q = k.ops[2](y)                # constant approximation
-    m = B, β, Q, Gaussian(F, H)              # message
-#         ...
-#    c, F, H =  ...             # compute new htilde
-    return m, WeightedGaussian(c, F, H)
-end
-function left′(::BFFG, k::GaussKernel, (l, x), z, m)
-    B, β, Q, a = m               # unpack message
-    _, F, H = wgaussian_params(a)
-#    ...                 # compute parameters for guided proposal
-#    c = ...
-#    μᵒ =  ...
-#    Qᵒ = ...
-    return nothing, (l + c, x + μᵒ + chol(Qᵒ)*z)
+function left′(::BFFG, k::GaussKernel, k̃::Union{AffineGaussianKernel,LinearGaussianKernel}, m::WGaussian{(:F,:Γ,:c)}, x)
+    @unpack F, Γ, c = m
+    μ, Q = k.ops
+    μ̃, Q̃ = k̃.ops
+
+    # Proposition 7.3.
+    Q⁻ = inv(Q(x))
+    Qᵒ = inv(Q⁻ + Γ)
+    μᵒ = Qᵒ*(Q⁻*μ(x) + F)
+
+    Q̃⁻ = inv(Q̃(x))
+    Q̃ᵒ = inv(Q̃⁻ + Γ)
+    μ̃ᵒ = Q̃ᵒ*(Q̃⁻*μ̃(x) + F)
+
+    c = logpdf0(μ(x), Q(x)) - logpdf0(μ̃(x), Q̃(x))
+    c += logpdf0(μ̃ᵒ, Q̃ᵒ) - logpdf0(μᵒ, Qᵒ)
+
+    WGaussian{(:μ,:Σ,:c)}(μᵒ, Qᵒ, c)
 end
 
 
