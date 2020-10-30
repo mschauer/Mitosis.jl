@@ -1,11 +1,11 @@
 logpdf0(x, P) = logdensity(Gaussian{(:Σ,)}(P), x)
 
 
-function right′(::BF, k::LinearGaussianKernel, q::Gaussian{(:μ, :Σ)})
+function right′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, q::Gaussian{(:μ, :Σ)})
     ν, Σ = q.μ, q.Σ
-    B, _, Q = params(k)
+    B, β, Q = params(k)
     B⁻¹ = inv(B)
-    νp = B⁻¹*ν
+    νp = B⁻¹*(ν - β)
     Σp = B⁻¹*(Σ + Q)*B⁻¹'
     q, Gaussian{(:μ,:Σ)}(νp, Σp)
 end
@@ -51,9 +51,12 @@ function left′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, m:
 
     Q⁻ = inv(Q)
     Qᵒ = inv(Q⁻ + Γ)
-    #μᵒ = Qᵒ*(Q⁻*(B*x + β) + F)
+    #μᵒ = Qᵒ*(Q⁻*(B*x + β) + F )
+    #   = 1/(1/adt + Γ)((x + b(x)dt)/adt + F)
+    #   = x + b(x)dt - aΓxdt + aFdt
     Bᵒ = Qᵒ*Q⁻*B
     βᵒ = Qᵒ*(Q⁻*β + F)
+#    βᵒ = β + Qᵒ*F
 
     kernel(WGaussian; μ=AffineMap(Bᵒ, βᵒ), Σ=ConstantMap(Qᵒ), c=ConstantMap(0.0))
 end
@@ -66,11 +69,11 @@ function left′(::BFFG, k::GaussKernel, k̃::Union{AffineGaussianKernel,LinearG
     # Proposition 7.3.
     Q⁻ = inv(Q(x))
     Qᵒ = inv(Q⁻ + Γ)
-    μᵒ = Qᵒ*(Q⁻*μ(x) + F)
+    μᵒ = Qᵒ*(Q⁻*(μ(x)) + F)
 
     Q̃⁻ = inv(Q̃(x))
     Q̃ᵒ = inv(Q̃⁻ + Γ)
-    μ̃ᵒ = Q̃ᵒ*(Q̃⁻*μ̃(x) + F)
+    μ̃ᵒ = Q̃ᵒ*(Q̃⁻*(μ̃(x)) + F)
 
     c = logpdf0(μ(x), Q(x)) - logpdf0(μ̃(x), Q̃(x))
     c += logpdf0(μ̃ᵒ, Q̃ᵒ) - logpdf0(μᵒ, Qᵒ)

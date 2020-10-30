@@ -38,8 +38,9 @@ priortransition = kernel(Gaussian; μ=LinearMap(I(2)), Σ=ConstantMap(P0))
 @test priortransition(ξ0) ≈ prior
 
 transition = kernel(Gaussian; μ=AffineMap(Φ, β), Σ=ConstantMap(Q))
-transition2 = kernel(Gaussian; μ=AffineMap(Φ, 0β), Σ=ConstantMap(Q))
+transition2 = kernel(Gaussian; μ=AffineMap(Φ, β), Σ=ConstantMap(Q))
 transition1 = kernel(Gaussian; μ=LinearMap(Φ), Σ=ConstantMap(Q))
+transition1 = transition2
 
 observation = kernel(Gaussian; μ=LinearMap(H), Σ=ConstantMap(R))
 
@@ -79,8 +80,9 @@ q2 = observation(p2)
 
 # Write down joint distribution of x's and y's by hand... (yes I am fine ;-))
 # Define mean and covariance of the flattened vector of states and observations [x0 x1 x2 y0 y1 y2]
-μ_ = [1.0, 0.0, 0.8, -0.1, 0.59, -0.16, 1.0, 0.8, 0.59]
-μ = [ ξ0; Φ*ξ0; Φ*Φ*ξ0; H*ξ0; H*Φ*ξ0; H*Φ*Φ*ξ0; ]
+#μ_ = [1.0, 0.0, 0.8, -0.1, 0.59, -0.16, 1.0, 0.8, 0.59]
+μ_ = [1.0, 0.0, 0.9, 0.1, 0.87, 0.19, 1.0, 0.9, 0.87] # with beta
+μ = [ ξ0; Φ*ξ0 + β; Φ*(Φ*ξ0 + β)+β; H*ξ0; H*(Φ*ξ0 + β); H*(Φ*(Φ*ξ0 + β)+β); ]
 @test μ_ ≈ μ
 
 
