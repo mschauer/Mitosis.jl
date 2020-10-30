@@ -37,6 +37,10 @@ function MeasureTheory.logdensity(p::WGaussian{(:F,:Γ,:c)}, x)
 end
 density(p::WGaussian, x) = exp(logdensity(p, x))
 
+StatsBase.rand(p::WGaussian) = rand(Random.GLOBAL_RNG, p)
+StatsBase.rand(RNG::AbstractRNG, p::WGaussian{(:μ,:Σ,:c)}) = (unwhiten(Gaussian{(:μ,:Σ)}(p.μ, p.Σ), randn!(RNG, zero(mean(p)))), p.c)
+
+
 #=
 Base.:(==)(p1::WGaussian, p2::WGaussian) = mean(p1) == mean(p2) && cov(p1) == cov(p2)
 Base.isapprox(p1::WGaussian, p2::WGaussian; kwargs...) =

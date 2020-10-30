@@ -9,7 +9,7 @@ using Random, Test, LinearAlgebra, Statistics
 
 Random.seed!(1)
 K = 10000 # repetitions
-
+atol = 2sqrt(K)
 # State space system
 #
 # x[0] ∼ N(x0, P0)
@@ -24,11 +24,15 @@ prior = Gaussian{(:μ,:Σ)}(ξ0, P0)
 β = [0.1, 0.2]
 Q = [0.2 0.0; 0.0 1.0]
 
+Φ̃ = [1.0 0.5; -0.1 1.0]
+β̃ = [0.2, 0.0]
+Q̃ = [0.3 0.0; 0.0 2.0]
+
 yshadow = [0.0]
 H = [1.0 0.0]
 R = Matrix(1.0I, 1, 1)
 INoise = Gaussian(μ=zero(ξ0), Σ=Q)
-Noise = Gaussian(μ=zero(yshadow),Σ=R)
+Noise = Gaussian(μ=zero(yshadow), Σ=R)
 
 @test AffineMap(Φ, β)(ξ0) == Φ*ξ0 + β
 @test ConstantMap(β)(ξ0) == β
@@ -41,6 +45,7 @@ transition = kernel(Gaussian; μ=AffineMap(Φ, β), Σ=ConstantMap(Q))
 transition2 = kernel(Gaussian; μ=AffineMap(Φ, β), Σ=ConstantMap(Q))
 transition1 = kernel(Gaussian; μ=LinearMap(Φ), Σ=ConstantMap(Q))
 transition1 = transition2
+transitiontilde = kernel(Gaussian; μ=AffineMap(Φ̃, β̃), Σ=ConstantMap(Q̃))
 
 observation = kernel(Gaussian; μ=LinearMap(H), Σ=ConstantMap(R))
 
@@ -168,6 +173,7 @@ end
 =#
 
 @testset "Backward filter with fusion" begin
+    global evi
     # forward model
     x0 = rand(priortransition(ξ0))
     y0 = rand(observation(x0))
@@ -230,5 +236,52 @@ end
     _, q = fuse(backwardfilter(transition2, x2; unfused=true)[2], backwardfilter(transition2, x2; unfused=true)[2])
     @test logdensity(q, x1) ≈ 2logdensity(transition2(x1), x2)
     @test logdensity(p1, x1) ≈ logdensity(observation(x1), y1) + logdensity(transition2(x1), x2)
+
+end
+
+@testset "Change of measure" begin
+    # forward model
+    x0 = rand(priortransition(ξ0))
+    y0 = rand(observation(x0))
+    x1 = rand(transition(x0))
+    y1 = rand(observation(x1))
+    x2 = rand(transition(x1))
+
+    # run backward filter
+    m1a, p1a = backwardfilter(observation, y1; unfused=true)
+    m1b, p1b = backwardfilter(transition2, x2; unfused=true)
+    m1, p1 = fuse(p1a, p1b)
+    m0a, p0a = backwardfilter(observation, y0; unfused=true)
+    m0b, p0b = backwardfilter(transitiontilde, p1; unfused=true)
+    m0, p0 = fuse(p0a, p0b)
+    m, evi2 = backwardfilter(priortransition, p0)
+
+    # as byproduct this just computed the model evidence as function
+    # of ξ0
+    #@test logdensity(evi, ξ0) ≈ logdensity(Gaussian(;μ=μ[5:8], Σ=Σ[5:8,5:8]), vcat(x2, y0, y1))
+
+
+
+
+
+    # run forward marginal smoother
+    kᵒ = left′(BFFG(), priortransition, m)
+    p0ᵒ = kᵒ(ξ0)
+    # skip copy
+
+    Y = Any[]
+    for i in 1:K
+        x, c = Mitosis.rand(p0ᵒ)
+        @assert c == 0
+        p1ᵒ = left′(BFFG(), transition2, transitiontilde, m0b, x)
+        yc = Mitosis.rand(p1ᵒ)
+        @assert yc[2] != 0
+        push!(Y, yc)
+    end
+
+
+    # second step gives the conditional marginal of x1
+    π1 = Mitosis.conditional(Gaussian(;μ=μ, Σ=Σ), 3:4, 5:8, vcat(x2, y0, y1))
+    @test mean(π1) ≈ mean(first.(Y) .* exp.(last.(Y)))*exp(logdensity(evi2, ξ0)-logdensity(evi, ξ0)) atol=atol
 
 end

@@ -1,7 +1,7 @@
 module Mitosis
 
 using UnPack
-using Statistics
+using Statistics, StatsBase
 using LinearAlgebra
 using Random
 using MeasureTheory
@@ -9,6 +9,8 @@ using MeasureTheory
 using MeasureTheory: AbstractMeasure, ScaledMeasure
 import MeasureTheory: density, logdensity
 import Base: iterate, length
+import Random.rand
+import StatsBase.sample
 
 export Gaussian, Copy, fuse
 export Traced, BFFG, left′, right′, backwardfilter, forwardsampler
