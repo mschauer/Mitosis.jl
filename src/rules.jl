@@ -52,11 +52,8 @@ function left′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, m:
     Q⁻ = inv(Q)
     Qᵒ = inv(Q⁻ + Γ)
     #μᵒ = Qᵒ*(Q⁻*(B*x + β) + F )
-    #   = 1/(1/adt + Γ)((x + b(x)dt)/adt + F)
-    #   = x + b(x)dt - aΓxdt + aFdt
     Bᵒ = Qᵒ*Q⁻*B
     βᵒ = Qᵒ*(Q⁻*β + F)
-#    βᵒ = β + Qᵒ*F
 
     kernel(WGaussian; μ=AffineMap(Bᵒ, βᵒ), Σ=ConstantMap(Qᵒ), c=ConstantMap(0.0))
 end
