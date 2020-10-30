@@ -1,7 +1,7 @@
 logpdf0(x, P) = logdensity(Gaussian{(:Σ,)}(P), x)
 
 
-function right′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, q::Gaussian{(:μ, :Σ)})
+function right′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, q::Gaussian{(:μ,:Σ)})
     ν, Σ = q.μ, q.Σ
     B, β, Q = params(k)
     B⁻¹ = inv(B)
@@ -79,14 +79,30 @@ function left′(::BFFG, k::GaussKernel, k̃::Union{AffineGaussianKernel,LinearG
 end
 
 
-
-function right′(::BFFG, ::Copy, a::WGaussian{(:F, :Γ, :c)}, args...)
-    F, H, c = params(a)
-    for b in args
-        F2, H2, c2 = params(b::WGaussian{(:F, :Γ, :c)})
+function right′(::BFFG, ::Copy, args::WGaussian{(:μ,:Σ,:c)}...; unfused=true)
+    F, H, c = params(convert(WGaussian{(:F,:Γ,:c)}, args[1]))
+    unfused || (c += logdensity(Gaussian{(:F,:Γ)}(F, H), 0F))
+    for b in args[2:end]
+        F2, H2, c2 = params(convert(WGaussian{(:F,:Γ,:c)}, b))
         F += F2
         H += H2
         c += c2
+        unfused || (c += logdensity(Gaussian{(:F,:Γ)}(F2, H2), 0F2))
+    end
+    Δ = -logdensity(Gaussian{(:F,:Γ)}(F, H), 0F)
+    m = ()
+    m, convert(WGaussian{(:μ,:Σ,:c)}, WGaussian{(:F,:Γ,:c)}(F, H, Δ + c))
+end
+
+function right′(::BFFG, ::Copy, a::WGaussian{(:F,:Γ,:c)}, args...; unfused=true)
+    F, H, c = params(a)
+    unfused || (c += logdensity(Gaussian{(:F,:Γ)}(F, H), 0F))
+    for b in args
+        F2, H2, c2 = params(b::WGaussian{(:F,:Γ,:c)})
+        F += F2
+        H += H2
+        c += c2
+        unfused || (c += logdensity(Gaussian{(:F,:Γ)}(F2, H2), 0F2))
     end
     Δ = -logdensity(Gaussian{(:F,:Γ)}(F, H), 0F)
     m = ()

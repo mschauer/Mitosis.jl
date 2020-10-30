@@ -13,3 +13,7 @@ G = Gaussian(μ=m, Σ=Q)
     @test 10/sqrt(K) > norm(m - mean(rand(G) for x in 1:K))
     @test 10/sqrt(K) > norm(Q - cov([rand(G) for x in 1:K]))
 end
+
+p = WGaussian(μ=m, Σ=Q, c=0.0)
+p2 = convert(WGaussian{(:μ,:Σ,:c)}, convert(WGaussian{(:F,:Γ,:c)}, p))
+@test p ≈ p2

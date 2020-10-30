@@ -57,11 +57,12 @@ function left′
 end
 function right′
 end
-backwardfilter(k, a; args...) = right′(BFFG(), k, a; args...)
-forwardsampler(k, u, z, m; args...) = left′(BFFG(), k, u, z, m; args...)
-fuse(a) = right′(BFFG(), Copy{1}(), a)
-fuse(a,b) = right′(BFFG(), Copy{2}(), a, b)
-fuse(a,b,c) = right′(BFFG(), Copy{3}(), a, b, c)
+backwardfilter(k, a; kargs...) = right′(BFFG(), k, a; kargs...)
+forwardsampler(k, m, x; kargs...) = left′(BFFG(), k, m, x; kargs...)
+
+fuse(a; kargs...) = right′(BFFG(), Copy{1}(), a; kargs...)
+fuse(a, b; kargs...) = right′(BFFG(), Copy{2}(), a, b; kargs...)
+fuse(a, b, c; kargs...) = right′(BFFG(), Copy{3}(), a, b, c; kargs...)
 
 struct Traced{T}
     x::T
@@ -72,5 +73,7 @@ include("gauss.jl")
 include("wgaussian.jl")
 include("markov.jl")
 include("rules.jl")
+
+forwardsampler(k, k̃::Kernel, m, x; kargs...) = left′(BFFG(), k, k̃, m, x; kargs...)
 
 end # module
