@@ -109,6 +109,10 @@ function right′(::BFFG, ::Copy, a::WGaussian{(:F,:Γ,:c)}, args...; unfused=tr
     m, WGaussian{(:F,:Γ,:c)}(F, H, Δ + c)
 end
 
-function left′(::BFFG, ::Copy{2}, (l, x), _, m)
-    (l, x), (0l, x)
+function left′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, y::Leaf, x::Weighted)
+    Dirac(weighted(y[], x.ll))
+
+end
+function left′(::BFFG, ::Copy{2}, _, x::Weighted)
+    MeasureTheory.Dirac((x, weighted(x[])))
 end

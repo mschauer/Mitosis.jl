@@ -12,7 +12,7 @@ import Base: iterate, length
 import Random.rand
 import StatsBase.sample
 
-export Gaussian, Copy, fuse
+export Gaussian, Copy, fuse, weighted
 export Traced, BFFG, left′, right′, backwardfilter, forwardsampler
 export BF, density, logdensity, ⊕, kernel, correct, Kernel, WGaussian, Gaussian, ConstantMap, AffineMap, LinearMap, GaussKernel
 
@@ -49,6 +49,8 @@ macro F(f) :(::typeof($f)) end
 struct Leaf{T}
     y::T
 end
+Base.getindex(y::Leaf) = y.y
+
 struct Copy{N}
 end
 (a::Copy{2})(x) = (x, x)
@@ -68,11 +70,29 @@ struct Traced{T}
     x::T
 end
 
-
+struct Weighted{S,T}
+    x::S
+    ll::T
+end
+weighted(x) = Weighted(x, 0.0)
+weighted(x, ll) = Weighted(x, ll)
+weighted(x::Weighted, ll) = Weighted(x.x, ll + x.ll)
+Base.getindex(x::Weighted) = x.x
 include("gauss.jl")
 include("wgaussian.jl")
 include("markov.jl")
 include("rules.jl")
+include("regression.jl")
+
+function left′(bffg::BFFG, k, m, x::Weighted)
+    p = left′(bffg, k, m)(x[])
+    weighted(p, x.ll)
+end
+function left′(bffg::BFFG, k::Tuple, m, x::Weighted)
+    p = left′(bffg, k..., m, x[])
+    weighted(p, x.ll)
+end
+
 
 forwardsampler(k, k̃::Kernel, m, x; kargs...) = left′(BFFG(), k, k̃, m, x; kargs...)
 

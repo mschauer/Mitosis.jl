@@ -38,8 +38,8 @@ end
 density(p::WGaussian, x) = exp(logdensity(p, x))
 
 StatsBase.rand(p::WGaussian) = rand(Random.GLOBAL_RNG, p)
-StatsBase.rand(RNG::AbstractRNG, p::WGaussian{(:μ,:Σ,:c)}) = (unwhiten(Gaussian{(:μ,:Σ)}(p.μ, p.Σ), randn!(RNG, zero(mean(p)))), p.c)
-
+StatsBase.rand(RNG::AbstractRNG, p::WGaussian{(:μ,:Σ,:c)}) = weighted(unwhiten(Gaussian{(:μ,:Σ)}(p.μ, p.Σ), randn!(RNG, zero(mean(p)))), p.c)
+weighted(p::WGaussian{(:μ, :Σ, :c)}, ll) = WGaussian{(:μ, :Σ, :c)}(p.μ, p.Σ, p.c + ll)
 
 function Base.convert(::Type{WGaussian{(:F,:Γ,:c)}}, p::WGaussian{(:μ,:Σ,:c)})
     Γ = inv(p.Σ)

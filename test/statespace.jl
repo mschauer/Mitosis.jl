@@ -271,12 +271,12 @@ end
 
     Y = Any[]
     for i in 1:K
-        x, c = Mitosis.rand(p0ᵒ)
-        @assert c == 0
-        p1ᵒ = left′(BFFG(), transition2, transitiontilde, m0b, x)
-        yc = Mitosis.rand(p1ᵒ)
-        @assert yc[2] != 0
-        push!(Y, yc)
+        x = Mitosis.rand(p0ᵒ)
+        @assert x.ll == 0
+        p1ᵒ = left′(BFFG(), transition2, transitiontilde, m0b, x[])
+        y = Mitosis.rand(p1ᵒ)
+        @assert y.ll != 0
+        push!(Y, (y[], y.ll))
     end
 
 
