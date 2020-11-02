@@ -18,11 +18,11 @@ H = [1.0 0.0]
 R = Matrix(1.0I, 1, 1)
 
 # and a nonlinear vector function
-f(x) = [0.8 0.5; -0.1 0.8]*[atan(x[1]), atan(x[2])]
+f(x) = [0.8 0.5; -0.1 0.8]*[atan(x[1]), atan(x[2])] + [0.1, 0.2]
 
 # Define some transition kernels.
 
-# We use AffineMap, LinearMap and ContantMap
+# We use AffineMap, LinearMap and ConstantMap
 # For example
 @test AffineMap(Φ, β)(x) == Φ*x + β
 
@@ -47,6 +47,7 @@ cp2 = Mitosis.Copy{2}() # copy kernel
 # Forward sample a Bayes net
 x0 = rand(priortransition(ξ0))
 y0 = rand(partialobservation(x0))
+            # forward model with nonlinear transition
 x1 = rand(nonlineartransition(x0))
 y1 = rand(partialobservation(x1))
 x2 = rand(fullobservation(x1))
@@ -73,6 +74,7 @@ m1b, p1b = right′(BFFG(), partialobservation, y1; unfused=true)
 m1a, p1a = right′(BFFG(), fullobservation, x2; unfused=true)
 m1, p1 = right′(BFFG(), cp2, p1a, p1b) # reverse of copy, call each child transition with unfused=true
 m0b, p0b = right′(BFFG(), partialobservation, y0; unfused=true)
+            # backward filter just uses linearization
 m0a, p0a = right′(BFFG(), linearizedtransition, p1; unfused=true)
 m0, p0 = right′(BFFG(), cp2, p0a, p0b)
 m, evidence = right′(BFFG(), priortransition, p0) # not a child of copy
@@ -80,19 +82,22 @@ m, evidence = right′(BFFG(), priortransition, p0) # not a child of copy
 # this creates messages m, m0, m1, ... and an evidence approximation
 
 # forward sampler, requires the messages from the previous pass and
-# a weighted starting term
+# a weighted starting term ξ0
 
 x0 = rand(left′(BFFG(), priortransition, m, weighted(ξ0)))
 x0a, x0b = rand(left′(BFFG(), cp2, m0, x0))
 y0 = rand(left′(BFFG(), partialobservation, m0b, x0b))
+            # guided sampler targets nonlineartransition, needs to know linearizedtransition
 x1 = rand(left′(BFFG(), (nonlineartransition, linearizedtransition), m0a, x0a))
 x1a, x1b = rand(left′(BFFG(), cp2, m1, x1))
 y1 = rand(left′(BFFG(), partialobservation, m1b, x1b))
 x2 = rand(left′(BFFG(), fullobservation, m1a, x1a))
 
 
-# weighted joint posterior sample
+# weighted joint posterior sample (x0, x1 random)
 (x0, y0, x1, y1, x2)
 
-# final weight as sum of weights of _leaves_ of forward pass
+# final importance weight as sum of weights of _leaves_ of guided pass
+# the importance weight accounts for mismatch of linear backward filter
+# and nonlinear forward model
 w = x2.ll + y1.ll + y0.ll
