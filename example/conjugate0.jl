@@ -21,13 +21,13 @@ x2 = rand(k2(x1))
 
 # Prior
 mw, Λw = zeros(2), Matrix(1.0I(2))
-p = WGaussian{(:F,:Γ,:c)}(mw, Λw, 0.0)
+p = Gaussian{(:F,:Γ)}(mw, Λw)
 
 # Conjugacy
 con1 = Mitosis.conjugate(k1, x0)
 con2 = Mitosis.conjugate(k2, x1)
-m1, p1 = right′(BFFG(), con1, [x1], unfused=true);
-m2, p2 = right′(BFFG(), con2, [x2], unfused=true);
+m1, p1 = right′(BF(), con1, [x1]);
+m2, p2 = right′(BF(), con2, [x2]);
 m, p = fuse(p, p1, p2)
 
 # Check with BayesianLinearRegressor
