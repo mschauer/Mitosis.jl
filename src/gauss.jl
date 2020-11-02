@@ -32,7 +32,7 @@ meancov(p) = mean(p), cov(p)
 
 precision(p::Gaussian{(:μ, :Σ)}) = inv(p.Σ)
 
-mean(p::Gaussian{(:F, :Γ)}) = Γ\p.F
+mean(p::Gaussian{(:F, :Γ)}) = p.Γ\p.F
 cov(p::Gaussian{(:F, :Γ)}) = inv(p.Γ)
 precision(p::Gaussian{(:F, :Γ)}) = p.Γ
 norm_sqr(x) = dot(x,x)
