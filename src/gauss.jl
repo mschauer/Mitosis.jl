@@ -46,7 +46,11 @@ unwhiten(p::Gaussian{(:Σ,)}, z) = lchol(p.Σ)*z
 sqmahal(p::Gaussian, x) = norm_sqr(whiten(p, x))
 
 rand(p::Gaussian) = rand(Random.GLOBAL_RNG, p)
-rand(RNG::AbstractRNG, p::Gaussian) = unwhiten(p, randn!(RNG, zero(mean(p))))
+randwn(rng::AbstractRNG, x::Vector) = randn!(rng, zero(x))
+randwn(rng::AbstractRNG, x) = map(xi -> randn(rng, typeof(xi)), x)
+
+rand(rng::AbstractRNG, p::Gaussian) = unwhiten(p, randwn(rng, mean(p)))
+
 _logdet(p::Gaussian{(:μ,:Σ)}) = _logdet(p.Σ, dim(p))
 _logdet(p::Gaussian{(:Σ,)}) = logdet(p.Σ)
 MeasureTheory.logdensity(p::Gaussian, x) = -(sqmahal(p,x) + _logdet(p) + dim(p)*log(2pi))/2
