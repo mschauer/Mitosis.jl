@@ -106,9 +106,7 @@ For each transition, the backward pass produces a message for the forward pass.
 ## Example: Bayesian regression with `BF()`
 
 `BF()` specifies the exact (conjugate) linear-Gaussian backward filter, forward smoothing version
-without importance weights.
-
-As illustration, a Bayesian regression example:
+without importance weights. [`BFFG()`](@ref) defines a more general approach which also works for non-linear transitions. Let's first consider the simpler case, in a Bayesian regression example:
 
 ### Data
 
@@ -169,9 +167,9 @@ nothing
 
 ```
 
-### Forward model
+### Combined forward model
 
-Summarizing, our model says that,
+Summarizing, with prior and model, we have
 ```
 β = rand(prior())
 y = rand(model(β))
@@ -194,7 +192,8 @@ At each step it produces a filtered distribution `p1, p2` and a message `m1, m2`
 
 ### Forward pass
 
-This `BF()` forward pass computes marginal distributions of latents.
+This `BF()` forward pass computes marginal distributions of latents. Because the parameters ``\beta`` are the latent outcome of the prior, we need at least one step of the forward pass.
+A second step of the forward pass would just give the observations back.
 
 ```jldoctest regression
 posterior = forward(BF(), prior, m1)()
