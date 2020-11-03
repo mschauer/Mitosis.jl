@@ -79,6 +79,15 @@ function MeasureTheory.logdensity(p::Gaussian{(:F,:Γ)}, x)
     -x'*p.Γ*x/2 + x'*p.F - p.F'*(C\p.F)/2  + logdet(C)/2 - dim(p)*log(2pi)/2
 end
 
+function Base.convert(::Type{Gaussian{(:F,:Γ)}}, p::Gaussian{(:μ,:Σ)})
+    Γ = inv(p.Σ)
+    return Gaussian{(:F,:Γ)}(Γ*p.μ, Γ)
+end
+function Base.convert(::Type{Gaussian{(:μ,:Σ)}}, p::Gaussian{(:F,:Γ)})
+    Σ = inv(p.Γ)
+    return Gaussian{(:μ,:Σ)}(Σ*p.F, Σ)
+end
+
 ## Algebra
 
 Base.:+(p::Gaussian{P}, x) where {P} = Gaussian{P}(mean(p) + x, p.par[2])

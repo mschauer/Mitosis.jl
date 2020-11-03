@@ -15,13 +15,14 @@ function right′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, q::
     # Theorem 7.1 [Automatic BFFG]
     B, β, Q = params(k)
     Σ = inv(Γ) # requires invertibility of Γ
-    K = B'/(Σ + Q)
+    K = B'*inv(Σ + Q)
     ν̃ = Σ*F - β
     Fp = K*ν̃
     Γp = K*B
     message = q
     message, Gaussian{(:F,:Γ)}(Fp, Γp)
 end
+
 
 function right′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, y)
     # Theorem 7.1 [Automatic BFFG]
@@ -68,6 +69,20 @@ function right′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, y
     message = Leaf(y)
     message, WGaussian{(:F,:Γ,:c)}(Fp, Γp, cp)
 end
+
+
+function left′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, m::Gaussian{(:F,:Γ)})
+    @unpack F, Γ = m
+    B, β, Q = params(k)
+
+    Q⁻ = inv(Q)
+    Qᵒ = inv(Q⁻ + Γ)
+    Bᵒ = Qᵒ*Q⁻*B
+    βᵒ = Qᵒ*(Q⁻*β + F)
+
+    kernel(Gaussian; μ=AffineMap(Bᵒ, βᵒ), Σ=ConstantMap(Qᵒ))
+end
+
 
 function left′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, m::WGaussian{(:F,:Γ,:c)})
     @unpack F, Γ, c = m
@@ -119,7 +134,7 @@ function right′(::BFFG, ::Copy, args::WGaussian{(:μ,:Σ,:c)}...; unfused=true
 end
 
 
-function right′(::BFFG, ::Copy, a::Gaussian{(:F,:Γ)}, args...)
+function right′(::Union{BFFG,BF}, ::Copy, a::Gaussian{(:F,:Γ)}, args...)
     F, H = params(a)
     for b in args
         F2, H2 = params(b::Gaussian{(:F,:Γ)})
@@ -147,7 +162,6 @@ end
 
 function left′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, y::Leaf, x::Weighted)
     Dirac(weighted(y[], x.ll))
-
 end
 function left′(::BFFG, ::Copy{2}, _, x::Weighted)
     MeasureTheory.Dirac((x, weighted(x[])))

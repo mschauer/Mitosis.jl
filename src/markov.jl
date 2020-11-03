@@ -42,10 +42,13 @@ struct ConstantMap{T}
 end
 (a::ConstantMap)(x) = a.x
 
-const LinearGaussianKernel =  Kernel{T,NamedTuple{(:μ, :Σ),Tuple{A, C}}} where {T<:Gaussian, A<:LinearMap, C<:ConstantMap}
+const LinearGaussianKernel = Kernel{T,NamedTuple{(:μ, :Σ),Tuple{A, C}}} where {T<:Gaussian, A<:LinearMap, C<:ConstantMap}
 params(k::LinearGaussianKernel) = k.ops.μ.B, Zero(), k.ops.Σ.x
-const AffineGaussianKernel =  Kernel{T,NamedTuple{(:μ, :Σ),Tuple{A, C}}} where {T<:Gaussian, A<:AffineMap, C<:ConstantMap}
+const AffineGaussianKernel = Kernel{T,NamedTuple{(:μ, :Σ),Tuple{A, C}}} where {T<:Gaussian, A<:AffineMap, C<:ConstantMap}
 params(k::AffineGaussianKernel) = k.ops.μ.B, k.ops.μ.β, k.ops.Σ.x
+const ConstantGaussianKernel =  Kernel{T,NamedTuple{(:μ, :Σ),Tuple{A, C}}} where {T<:Gaussian, A<:ConstantMap, C<:ConstantMap}
+params(k::ConstantGaussianKernel) = k.ops.μ.x, k.ops.Σ.x
+
 
 """
     correct(prior, obskernel, obs) = u, yres, S
