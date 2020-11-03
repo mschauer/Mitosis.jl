@@ -5,15 +5,11 @@ using Mitosis
 using Random, Test, LinearAlgebra, Statistics
 Random.seed!(1)
 
-# Forward model
-β = [0.1, 0.2]
-
-
 # Prior (as kernel of prior mean)
-I2 = Matrix(1.0I(2))
+ 
 μ0 = zeros(2)
 σ2 = 8.0 # noise
-V0 = 10*I2
+V0 = 10*I(2)
 Σ0 = σ2*V0 # prior
 
 prior = kernel(Gaussian; μ=ConstantMap(μ0), Σ=ConstantMap(Σ0))
