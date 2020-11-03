@@ -108,6 +108,10 @@ For each transition, the backward pass produces a message for the forward pass.
 `BF()` specifies the exact (conjugate) linear-Gaussian backward filter, forward smoothing version
 without importance weights. [`BFFG()`](@ref) defines a more general approach which also works for non-linear transitions. Let's first consider the simpler case, in a Bayesian regression example:
 
+``\beta \sim N(\mu_0, \sigma^2 V_0).``
+
+``Y \mid \beta \sim N(X\beta, \sigma^2)``
+
 ### Data
 
 Small data set.
@@ -123,7 +127,7 @@ n = length(x)
 
 ### Prior
 
-The conjugate prior is Gaussian,
+The conjugate prior on the parameter ``\beta`` is Gaussian,
 
 ``\beta \sim N(\mu_0, \sigma^2 V_0).``
 
@@ -147,7 +151,7 @@ true
 
 ### Model
 
-Conditional on ``\beta``, a regression model:
+Conditional on the parameter vector ``\beta``, a regression model:
 
 ``Y \mid \beta \sim N(X\beta, \sigma^2)``
 where `X` is the design matrix.
