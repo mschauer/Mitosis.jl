@@ -5,6 +5,25 @@ using Statistics, StatsBase
 using LinearAlgebra
 using Random
 using MeasureTheory
+import MeasureTheory: kernel
+
+"""
+    kernel(f, M)
+    kernel((f1, f2, ...), M)
+
+A kernel `κ = kernel(f, M)` returns a wrapper around
+a function `f` giving the parameters for a measure of type `M`,
+such that `κ(x) = M(f(x)...)`
+respective `κ(x) = M(f1(x), f2(x), ...)`.
+
+If the argument is a named tuple `(;a=f1, b=f1)`, `κ(x)` is defined as
+`M(;a=f(x),b=g(x))`.
+
+# Reference
+
+* https://en.wikipedia.org/wiki/Markov_kernel
+"""
+kernel
 
 using MeasureTheory: AbstractMeasure, ScaledMeasure
 import MeasureTheory: density, logdensity

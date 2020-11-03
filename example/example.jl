@@ -2,7 +2,6 @@ if !@isdefined TEST
     using Revise
 end
 using Mitosis
-using Mitosis: meancov, flat
 using Random, Test, LinearAlgebra, Statistics
 
 # Define some vectors and matrices

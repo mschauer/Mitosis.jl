@@ -2,11 +2,7 @@
 CurrentModule = Mitosis
 ```
 
-# Mitosis
 
+# Index
 ```@index
-```
-
-```@autodocs
-Modules = [Mitosis]
 ```

@@ -1,6 +1,25 @@
 import Statistics: mean, cov
 import Random.rand
 import LinearAlgebra.logdet
+
+"""
+    Gaussian{(:μ,:Σ)}
+    Gaussian{(:F,:Γ)}
+
+Mitosis provides the measure `Gaussian` based on MeasureTheory.jl,
+with a mean `μ` and covariance `Σ` parametrization,
+or parametrised by natural parameters `F = Γ μ`, `Γ = Σ⁻¹`.
+
+# Usage:
+
+    Gaussian(μ=m, Σ=C)
+    p = Gaussian{(:μ,:Σ)}(m, C)
+    Gaussian(F=C\\m, Γ=inv(C))
+
+    convert(Gaussian{(:F,:Γ)}, p)
+
+    rand(rng, p)
+"""
 struct Gaussian{P,T} <: AbstractMeasure
     par::NamedTuple{P,T}
 end

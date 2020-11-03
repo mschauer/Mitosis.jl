@@ -3,6 +3,12 @@ import MeasureTheory.Kernel, MeasureTheory.kernel
 const GaussKernel = MeasureTheory.Kernel{<:Gaussian}
 #const Copy = MeasureTheory.Kernel{<:Dirac}
 
+"""
+    AffineMap(B, β)
+
+Represents a function `f = AffineMap(B, β)`
+such that `f(x) == B*x + β`.
+"""
 struct AffineMap{S,T}
     B::S
     β::T
@@ -11,7 +17,12 @@ end
 (a::AffineMap)(p::Gaussian) = Gaussian(μ = a.B*mean(p) + a.β, Σ = a.B*cov(p)*a.B')
 (a::AffineMap)(p::WGaussian) = WGaussian(μ = a.B*mean(p) + a.β, Σ = a.B*cov(p)*a.B', c=p.c)
 
+"""
+    LinearMap(B)
 
+Represents a function `f = LinearMap(B)`
+such that `f(x) == B*x`.
+"""
 struct LinearMap{T}
     B::T
 end
@@ -20,7 +31,12 @@ end
 (a::LinearMap)(p::WGaussian) = WGaussian(μ = a.B*mean(p), Σ = a.B*cov(p)*a.B', c=p.c)
 
 
+"""
+    ConstantMap(β)
 
+Represents a function `f = ConstantMap(β)`
+such that `f(x) == β`.
+"""
 struct ConstantMap{T}
     x::T
 end
