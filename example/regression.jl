@@ -6,7 +6,7 @@ using Random, Test, LinearAlgebra, Statistics
 Random.seed!(1)
 
 # Prior (as kernel of prior mean)
- 
+
 μ0 = zeros(2)
 σ2 = 8.0 # noise
 V0 = 10*I(2)
@@ -25,10 +25,10 @@ X = [x ones(n)]
 model = kernel(Gaussian; μ=LinearMap(X), Σ=ConstantMap(Σ))
 
 # backward pass
-m2, p2 = right′(BF(), model, y)
-m1, p1 = right′(BF(), prior, p2)
+m2, p2 = backward(BF(), model, y)
+m1, p1 = backward(BF(), prior, p2)
 
-posterior = left′(BF(), prior, m1)()
+posterior = forward(BF(), prior, m1)()
 
 @show mean(posterior), cov(posterior)
 

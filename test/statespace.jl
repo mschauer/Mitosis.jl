@@ -134,7 +134,7 @@ end
 
 
 @testset "right' linear gaussian case" begin
-    p0 = right′(BF(), transition1, p1)[2]
+    p0 = backward(BF(), transition1, p1)[2]
 
     ν, P = meancov(p0)
 
@@ -147,7 +147,7 @@ end
     q1 = WGaussian(F=H*mean(p1), Γ=H, c=0.0)
     @test logdensity(q1, x0) ≈ logdensity(p1, x0)
 
-    q0 = right′(BFFG(), transition1, q1)[2]
+    q0 = backward(BFFG(), transition1, q1)[2]
 
     ν0 = q0.Γ\q0.F
     P0 = inv(q0.Γ)
@@ -210,10 +210,10 @@ end
     @test evi2 ≈ evi
 
     # run forward marginal smoother
-    kᵒ = left′(BFFG(), priortransition, m)
+    kᵒ = forward(BFFG(), priortransition, m)
     p0ᵒ = kᵒ(ξ0)
     # skip copy
-    k0ᵒ = left′(BFFG(), transition2, m0b)
+    k0ᵒ = forward(BFFG(), transition2, m0b)
     p1ᵒ = k0ᵒ(p0ᵒ)
 
 
@@ -265,7 +265,7 @@ end
 
 
     # run forward marginal smoother
-    kᵒ = left′(BFFG(), priortransition, m)
+    kᵒ = forward(BFFG(), priortransition, m)
     p0ᵒ = kᵒ(ξ0)
     # skip copy
 
@@ -273,7 +273,7 @@ end
     for i in 1:K
         x = Mitosis.rand(p0ᵒ)
         @assert x.ll == 0
-        p1ᵒ = left′(BFFG(), transition2, transitiontilde, m0b, x[])
+        p1ᵒ = forward(BFFG(), transition2, transitiontilde, m0b, x[])
         y = Mitosis.rand(p1ᵒ)
         @assert y.ll != 0
         push!(Y, (y[], y.ll))

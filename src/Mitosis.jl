@@ -32,7 +32,7 @@ import Random.rand
 import StatsBase.sample
 
 export Gaussian, Copy, fuse, weighted
-export Traced, BFFG, left′, right′, backwardfilter, forwardsampler
+export Traced, BFFG, left′, right′, forward, backward, backwardfilter, forwardsampler
 export BF, density, logdensity, ⊕, kernel, correct, Kernel, WGaussian, Gaussian, ConstantMap, AffineMap, LinearMap, GaussKernel
 
 
@@ -74,16 +74,19 @@ struct Copy{N}
 end
 (a::Copy{2})(x) = (x, x)
 
-function left′
+function forward
 end
-function right′
+function backward
 end
-backwardfilter(k, a; kargs...) = right′(BFFG(), k, a; kargs...)
-forwardsampler(k, m, x; kargs...) = left′(BFFG(), k, m, x; kargs...)
+const left′ = forward
+const right′ = backward
 
-fuse(a; kargs...) = right′(BFFG(), Copy{1}(), a; kargs...)
-fuse(a, b; kargs...) = right′(BFFG(), Copy{2}(), a, b; kargs...)
-fuse(a, b, c; kargs...) = right′(BFFG(), Copy{3}(), a, b, c; kargs...)
+backwardfilter(k, a; kargs...) = backward(BFFG(), k, a; kargs...)
+forwardsampler(k, m, x; kargs...) = forward(BFFG(), k, m, x; kargs...)
+
+fuse(a; kargs...) = backward(BFFG(), Copy{1}(), a; kargs...)
+fuse(a, b; kargs...) = backward(BFFG(), Copy{2}(), a, b; kargs...)
+fuse(a, b, c; kargs...) = backward(BFFG(), Copy{3}(), a, b, c; kargs...)
 
 struct Traced{T}
     x::T
@@ -103,16 +106,16 @@ include("markov.jl")
 include("rules.jl")
 include("regression.jl")
 
-function left′(bffg::BFFG, k, m, x::Weighted)
-    p = left′(bffg, k, m)(x[])
+function forward(bffg::BFFG, k, m, x::Weighted)
+    p = forward(bffg, k, m)(x[])
     weighted(p, x.ll)
 end
-function left′(bffg::BFFG, k::Tuple, m, x::Weighted)
-    p = left′(bffg, k..., m, x[])
+function forward(bffg::BFFG, k::Tuple, m, x::Weighted)
+    p = forward(bffg, k..., m, x[])
     weighted(p, x.ll)
 end
 
 
-forwardsampler(k, k̃::Kernel, m, x; kargs...) = left′(BFFG(), k, k̃, m, x; kargs...)
+forwardsampler(k, k̃::Kernel, m, x; kargs...) = forward(BFFG(), k, k̃, m, x; kargs...)
 
 end # module

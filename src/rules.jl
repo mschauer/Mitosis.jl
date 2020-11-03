@@ -1,7 +1,7 @@
 logpdf0(x, P) = logdensity(Gaussian{(:Σ,)}(P), x)
 
 
-function right′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, q::Gaussian{(:μ,:Σ)})
+function backward(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, q::Gaussian{(:μ,:Σ)})
     ν, Σ = q.μ, q.Σ
     B, β, Q = params(k)
     B⁻¹ = inv(B)
@@ -10,13 +10,13 @@ function right′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, q::
     q, Gaussian{(:μ,:Σ)}(νp, Σp)
 end
 
-function right′(::BF, k::ConstantGaussianKernel, q::Gaussian{(:F,:Γ)})
+function backward(::BF, k::ConstantGaussianKernel, q::Gaussian{(:F,:Γ)})
     message = q
     message, nothing
 end
 
 
-function right′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, q::Gaussian{(:F,:Γ)})
+function backward(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, q::Gaussian{(:F,:Γ)})
     @unpack F, Γ = q
     # Theorem 7.1 [Automatic BFFG]
     B, β, Q = params(k)
@@ -30,7 +30,7 @@ function right′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, q::
 end
 
 
-function right′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, y)
+function backward(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, y)
     # Theorem 7.1 [Automatic BFFG]
     B, β, Q = params(k)
     K = B'/Q
@@ -41,7 +41,7 @@ function right′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, y)
 end
 
 
-function right′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, q::WGaussian{(:F,:Γ,:c)}; unfused=false)
+function backward(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, q::WGaussian{(:F,:Γ,:c)}; unfused=false)
     @unpack F, Γ, c = q
     # Theorem 7.1 [Automatic BFFG]
     B, β, Q = params(k)
@@ -60,7 +60,7 @@ function right′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, q
     message, WGaussian{(:F,:Γ,:c)}(Fp, Γp, cp)
 end
 
-function right′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, y; unfused=false)
+function backward(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, y; unfused=false)
     # Theorem 7.1 [Automatic BFFG]
     B, β, Q = params(k)
     K = B'/Q
@@ -77,7 +77,7 @@ function right′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, y
 end
 
 
-function left′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, m::Gaussian{(:F,:Γ)})
+function forward(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, m::Gaussian{(:F,:Γ)})
     @unpack F, Γ = m
     B, β, Q = params(k)
 
@@ -88,7 +88,7 @@ function left′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, m::G
 
     kernel(Gaussian; μ=AffineMap(Bᵒ, βᵒ), Σ=ConstantMap(Qᵒ))
 end
-function left′(::BF, k::ConstantGaussianKernel, m::Gaussian{(:F,:Γ)})
+function forward(::BF, k::ConstantGaussianKernel, m::Gaussian{(:F,:Γ)})
     @unpack F, Γ = m
     β, Q = params(k)
 
@@ -101,7 +101,7 @@ end
 
 
 
-function left′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, m::WGaussian{(:F,:Γ,:c)})
+function forward(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, m::WGaussian{(:F,:Γ,:c)})
     @unpack F, Γ, c = m
     B, β, Q = params(k)
 
@@ -114,7 +114,7 @@ function left′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, m:
     kernel(WGaussian; μ=AffineMap(Bᵒ, βᵒ), Σ=ConstantMap(Qᵒ), c=ConstantMap(0.0))
 end
 
-function left′(::BFFG, k::GaussKernel, k̃::Union{AffineGaussianKernel,LinearGaussianKernel}, m::WGaussian{(:F,:Γ,:c)}, x)
+function forward(::BFFG, k::GaussKernel, k̃::Union{AffineGaussianKernel,LinearGaussianKernel}, m::WGaussian{(:F,:Γ,:c)}, x)
     @unpack F, Γ, c = m
     μ, Q = k.ops
     μ̃, Q̃ = k̃.ops
@@ -135,7 +135,7 @@ function left′(::BFFG, k::GaussKernel, k̃::Union{AffineGaussianKernel,LinearG
 end
 
 
-function right′(::BFFG, ::Copy, args::WGaussian{(:μ,:Σ,:c)}...; unfused=true)
+function backward(::BFFG, ::Copy, args::WGaussian{(:μ,:Σ,:c)}...; unfused=true)
     F, H, c = params(convert(WGaussian{(:F,:Γ,:c)}, args[1]))
     unfused || (c += logdensity(Gaussian{(:F,:Γ)}(F, H), 0F))
     for b in args[2:end]
@@ -151,7 +151,7 @@ function right′(::BFFG, ::Copy, args::WGaussian{(:μ,:Σ,:c)}...; unfused=true
 end
 
 
-function right′(::Union{BFFG,BF}, ::Copy, a::Gaussian{(:F,:Γ)}, args...)
+function backward(::Union{BFFG,BF}, ::Copy, a::Gaussian{(:F,:Γ)}, args...)
     F, H = params(a)
     for b in args
         F2, H2 = params(b::Gaussian{(:F,:Γ)})
@@ -162,7 +162,7 @@ function right′(::Union{BFFG,BF}, ::Copy, a::Gaussian{(:F,:Γ)}, args...)
     m, Gaussian{(:F,:Γ)}(F, H)
 end
 
-function right′(::BFFG, ::Copy, a::WGaussian{(:F,:Γ,:c)}, args...; unfused=true)
+function backward(::BFFG, ::Copy, a::WGaussian{(:F,:Γ,:c)}, args...; unfused=true)
     F, H, c = params(a)
     unfused || (c += logdensity(Gaussian{(:F,:Γ)}(F, H), 0F))
     for b in args
@@ -177,9 +177,9 @@ function right′(::BFFG, ::Copy, a::WGaussian{(:F,:Γ,:c)}, args...; unfused=tr
     m, WGaussian{(:F,:Γ,:c)}(F, H, Δ + c)
 end
 
-function left′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, y::Leaf, x::Weighted)
+function forward(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, y::Leaf, x::Weighted)
     Dirac(weighted(y[], x.ll))
 end
-function left′(::BFFG, ::Copy{2}, _, x::Weighted)
+function forward(::BFFG, ::Copy{2}, _, x::Weighted)
     MeasureTheory.Dirac((x, weighted(x[])))
 end

@@ -87,19 +87,23 @@ k(p) isa Gaussian
 true
 ```
 
-## Example: Bayesian regression with `BF()`
+## Backward and forward passes
 
-Left and right functions with signature
+Backward and forward functions with signature
 `
 ```
-message, marginal = right′(BF(), kernel, argument)
+message, marginal = backward(BF(), kernel, argument)
 ```
 
 ```
-marginal = left′(BF(), kernel, message)(argument)
+marginal = forward(BF(), kernel, message)(argument)
 ```
 
 define a generic interface to a 2-pass backward filtering, forward smoothing algorithm.
+For each transition, the backward pass produces a message for the forward pass.
+
+
+## Example: Bayesian regression with `BF()`
 
 `BF()` specifies the exact (conjugate) linear-Gaussian backward filter, forward smoothing version
 without importance weights.
@@ -119,6 +123,30 @@ n = length(x)
 10
 ```
 
+### Prior
+
+The conjugate prior is Gaussian,
+
+``\beta \sim N(\mu_0, \sigma^2 V_0).``
+
+We write it as kernel (without arguments) as well:
+
+```jldoctest regression
+σ2 = 8.0 # noise level
+
+μ0 = zeros(2)
+V0 = 10*I(2)
+Σ0 = σ2*V0 # prior
+
+prior = kernel(Gaussian; μ=ConstantMap(μ0), Σ=ConstantMap(Σ0))
+
+mean(prior()) == μ0
+
+# output
+true
+```
+
+
 ### Model
 
 Conditional on ``\beta``, a regression model:
@@ -131,7 +159,7 @@ Thus we can express this as linear Gaussian kernel:
 ```jldoctest regression
 X = [x ones(n)] # Design matrix
 
-σ2 = 8.0 # noise level
+
 Σ = Diagonal(σ2*ones(n)) # noise covariance
 
 model = kernel(Gaussian; μ=LinearMap(X), Σ=ConstantMap(Σ))
@@ -141,26 +169,7 @@ nothing
 
 ```
 
-### Prior
-
-The conjugate prior is Gaussian,
-
-``\beta \sim N(\mu_0, \sigma^2 V_0).``
-
-We write it as kernel (without arguments) as well:
-
-```jldoctest regression
-μ0 = zeros(2)
-V0 = 10*I(2)
-Σ0 = σ2*V0 # prior
-
-prior = kernel(Gaussian; μ=ConstantMap(μ0), Σ=ConstantMap(Σ0))
-
-mean(prior()) == μ0
-
-# output
-true
-```
+### Forward model
 
 Summarizing, our model says that,
 ```
@@ -174,8 +183,8 @@ Think of this as the composition of kernels.
 The backward pass takes observations ``y`` into account and propagates uncertainty backward through the model.
 
 ```jldoctest regression
-m2, p2 = right′(BF(), model, y)
-m1, p1 = right′(BF(), prior, p2)
+m2, p2 = backward(BF(), model, y)
+m1, p1 = backward(BF(), prior, p2)
 
 nothing
 # output
@@ -188,8 +197,8 @@ At each step it produces a filtered distribution `p1, p2` and a message `m1, m2`
 This `BF()` forward pass computes marginal distributions of latents.
 
 ```jldoctest regression
-posterior = left′(BF(), prior, m1)()
-# observations = left′(BF(), model, m2)(posterior)
+posterior = forward(BF(), prior, m1)()
+# observations = forward(BF(), model, m2)(posterior)
 
 mean(posterior), cov(posterior)
 

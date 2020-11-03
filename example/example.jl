@@ -69,28 +69,28 @@ x2 = rand(fullobservation(x1a))
 # backward steps trace forward step in reverse order
 # starting from the observations
 
-m1b, p1b = right′(BFFG(), partialobservation, y1; unfused=true)
-m1a, p1a = right′(BFFG(), fullobservation, x2; unfused=true)
-m1, p1 = right′(BFFG(), cp2, p1a, p1b) # reverse of copy, call each child transition with unfused=true
-m0b, p0b = right′(BFFG(), partialobservation, y0; unfused=true)
+m1b, p1b = backward(BFFG(), partialobservation, y1; unfused=true)
+m1a, p1a = backward(BFFG(), fullobservation, x2; unfused=true)
+m1, p1 = backward(BFFG(), cp2, p1a, p1b) # reverse of copy, call each child transition with unfused=true
+m0b, p0b = backward(BFFG(), partialobservation, y0; unfused=true)
             # backward filter just uses linearization
-m0a, p0a = right′(BFFG(), linearizedtransition, p1; unfused=true)
-m0, p0 = right′(BFFG(), cp2, p0a, p0b)
-m, evidence = right′(BFFG(), priortransition, p0) # not a child of copy
+m0a, p0a = backward(BFFG(), linearizedtransition, p1; unfused=true)
+m0, p0 = backward(BFFG(), cp2, p0a, p0b)
+m, evidence = backward(BFFG(), priortransition, p0) # not a child of copy
 
 # this creates messages m, m0, m1, ... and an evidence approximation
 
 # forward sampler, requires the messages from the previous pass and
 # a weighted starting term ξ0
 
-x0 = rand(left′(BFFG(), priortransition, m, weighted(ξ0)))
-x0a, x0b = rand(left′(BFFG(), cp2, m0, x0))
-y0 = rand(left′(BFFG(), partialobservation, m0b, x0b))
+x0 = rand(forward(BFFG(), priortransition, m, weighted(ξ0)))
+x0a, x0b = rand(forward(BFFG(), cp2, m0, x0))
+y0 = rand(forward(BFFG(), partialobservation, m0b, x0b))
             # guided sampler targets nonlineartransition, needs to know linearizedtransition
-x1 = rand(left′(BFFG(), (nonlineartransition, linearizedtransition), m0a, x0a))
-x1a, x1b = rand(left′(BFFG(), cp2, m1, x1))
-y1 = rand(left′(BFFG(), partialobservation, m1b, x1b))
-x2 = rand(left′(BFFG(), fullobservation, m1a, x1a))
+x1 = rand(forward(BFFG(), (nonlineartransition, linearizedtransition), m0a, x0a))
+x1a, x1b = rand(forward(BFFG(), cp2, m1, x1))
+y1 = rand(forward(BFFG(), partialobservation, m1b, x1b))
+x2 = rand(forward(BFFG(), fullobservation, m1a, x1a))
 
 
 # weighted joint posterior sample (x0, x1 random)

@@ -26,8 +26,8 @@ p = Gaussian{(:F,:Γ)}(mw, Λw)
 # Conjugacy
 con1 = Mitosis.conjugate(k1, x0)
 con2 = Mitosis.conjugate(k2, x1)
-m1, p1 = right′(BF(), con1, [x1]);
-m2, p2 = right′(BF(), con2, [x2]);
+m1, p1 = backward(BF(), con1, [x1]);
+m2, p2 = backward(BF(), con2, [x2]);
 m, p = fuse(p, p1, p2)
 
 # Check with BayesianLinearRegressor
