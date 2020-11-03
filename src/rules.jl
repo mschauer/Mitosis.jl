@@ -10,6 +10,12 @@ function right′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, q::
     q, Gaussian{(:μ,:Σ)}(νp, Σp)
 end
 
+function right′(::BF, k::ConstantGaussianKernel, q::Gaussian{(:F,:Γ)})
+    message = q
+    message, nothing
+end
+
+
 function right′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, q::Gaussian{(:F,:Γ)})
     @unpack F, Γ = q
     # Theorem 7.1 [Automatic BFFG]
@@ -82,6 +88,17 @@ function left′(::BF, k::Union{AffineGaussianKernel,LinearGaussianKernel}, m::G
 
     kernel(Gaussian; μ=AffineMap(Bᵒ, βᵒ), Σ=ConstantMap(Qᵒ))
 end
+function left′(::BF, k::ConstantGaussianKernel, m::Gaussian{(:F,:Γ)})
+    @unpack F, Γ = m
+    β, Q = params(k)
+
+    Q⁻ = inv(Q)
+    Qᵒ = inv(Q⁻ + Γ)
+    βᵒ = Qᵒ*(Q⁻*β + F)
+
+    kernel(Gaussian; μ=ConstantMap(βᵒ), Σ=ConstantMap(Qᵒ))
+end
+
 
 
 function left′(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, m::WGaussian{(:F,:Γ,:c)})

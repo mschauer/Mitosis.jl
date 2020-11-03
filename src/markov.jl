@@ -1,5 +1,8 @@
 import MeasureTheory.Kernel, MeasureTheory.kernel
 
+MeasureTheory.mapcall(t) = map(func -> func(), t)
+(k::Kernel{M,<:NamedTuple})() where {M} = M(; MeasureTheory.mapcall(k.ops)...)
+
 const GaussKernel = MeasureTheory.Kernel{<:Gaussian}
 #const Copy = MeasureTheory.Kernel{<:Dirac}
 
@@ -41,6 +44,7 @@ struct ConstantMap{T}
     x::T
 end
 (a::ConstantMap)(x) = a.x
+(a::ConstantMap)() = a.x
 
 const LinearGaussianKernel = Kernel{T,NamedTuple{(:μ, :Σ),Tuple{A, C}}} where {T<:Gaussian, A<:LinearMap, C<:ConstantMap}
 params(k::LinearGaussianKernel) = k.ops.μ.B, Zero(), k.ops.Σ.x
