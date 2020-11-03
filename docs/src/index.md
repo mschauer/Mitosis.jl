@@ -181,6 +181,8 @@ nothing
 # output
 
 ```
+At each step it produces a filtered distribution `p1, p2` and a message `m1, m2` for the forward pass.
+
 ### Forward pass
 
 This `BF()` forward pass computes marginal distributions of latents.
