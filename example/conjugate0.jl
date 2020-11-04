@@ -11,8 +11,8 @@ Random.seed!(1)
 
 r1 = Mitosis.Regression(β, (sin,cos), zero)
 r2 = Mitosis.Regression(β, (cos,cos), zero)
-k1 = kernel(Gaussian, μ=f1, Σ=ConstantMap(1.0))
-k2 = kernel(Gaussian, μ=f2, Σ=ConstantMap(2.0))
+k1 = kernel(Gaussian, μ=r1, Σ=ConstantMap(1.0))
+k2 = kernel(Gaussian, μ=r2, Σ=ConstantMap(2.0))
 
 # Data
 x0 = rand()

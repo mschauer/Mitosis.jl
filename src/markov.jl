@@ -82,6 +82,16 @@ function correct_joseph((x, Ppred), H, R, y)
     (x, P), yres, S
 end
 
+function correct_kalman((x, Ppred), H, R, y)
+    yres = y - H*x # innovation residual
+    S = (H*Ppred*H' + R) # innovation covariance
+
+    K = Ppred*H'/S # Kalman gain
+    x = x + K*yres
+    P = (I - K*H)*Ppred # Kalman form
+    (x, P), yres, S
+end
+
 function smooth(Gs::T, Gf, Gpred, Φ) where {T}
     xs, Ps = meancov(Gs)
     xf, Pf = meancov(Gf)

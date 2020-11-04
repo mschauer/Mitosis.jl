@@ -21,6 +21,17 @@ f(x) = [0.8 0.5; -0.1 0.8]*[atan(x[1]), atan(x[2])] + [0.1, 0.2]
 
 # Define some transition kernels.
 
+# We define the equivalent of the Soss model
+:(m = @model ξ0 begin
+          x0 ~ MvNormal(ξ0, P0) # priortransition
+          y0 ~ MvNormal(H*x0, R) # partialobservation
+          x1 ~ MvNormal(f(x0), Q) # nonlineartransition
+          y1 ~ MvNormal(H*x1, R) # partial observations
+          x2 ~ MvNormal(x1, P0) # full observation
+          # return y0, y1, x2
+      end;)
+
+
 # We use AffineMap, LinearMap and ConstantMap
 # For example
 @test AffineMap(Φ, β)(x) == Φ*x + β
