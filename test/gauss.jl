@@ -17,3 +17,7 @@ end
 p = WGaussian(μ=m, Σ=Q, c=0.0)
 p2 = convert(WGaussian{(:μ,:Σ,:c)}, convert(WGaussian{(:F,:Γ,:c)}, p))
 @test p ≈ p2
+
+p = Gaussian(μ=m, Σ=Q)
+p2 = convert(Gaussian{(:μ,:Σ)}, convert(Gaussian{(:F,:Γ)}, p))
+@test p ≈ p2
