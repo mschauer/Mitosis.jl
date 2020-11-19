@@ -25,7 +25,7 @@ function laplacian(T, m, n)
     S
 end
 
-m, n = 35, 35
+m, n = 20, 20
 W = [exp(-norm(([i,j]-[m÷3,n÷3]))^2/25.0) + 0.02randn() for i in 1:m, j in 1:n]
 
 C = CartesianIndices((m, n))
@@ -42,8 +42,11 @@ for k in 1:16
     _, p = Mitosis.backward(BF(), k, [W[i]])
     _, u = fuse(u, p)
     img(x) = image(reshape(x, m, n))
-    _, i_ = findmax(mean(u) + 1.5./sqrt.(diag(u.Γ))) # proxy for inverse
-    #_, i_ = findmax(mean(u) + 2.0sqrt.(diag(inv(Matrix(u.Γ)))))
+    if m + n > 50
+        _, i_ = findmax(mean(u) + 1.5./sqrt.(diag(u.Γ))) # proxy for inverse
+    else
+        _, i_ = findmax(mean(u) + 2.0sqrt.(diag(inv(Matrix(u.Γ)))))
+    end
 
     i = C[i_]
     println(i)
