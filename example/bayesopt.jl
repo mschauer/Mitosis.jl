@@ -1,5 +1,3 @@
-
-using Makie
 using SparseArrays
 using Mitosis
 
@@ -24,40 +22,48 @@ function laplacian(T, m, n)
     end
     S
 end
-
+# indices
 m, n = 20, 20
-W = [exp(-norm(([i,j]-[m÷3,n÷3]))^2/25.0) + 0.02randn() for i in 1:m, j in 1:n]
-
 C = CartesianIndices((m, n))
 L = LinearIndices((m, n))
-i = CartesianIndex(m÷2, n÷2)
+
+# data
+W = [exp(-norm(([i,j]-[m÷3,n÷3]))^2/25.0) + 0.02randn() for i in 1:m, j in 1:n]
+
+# prior (power of the graph laplacian)
 Λ = laplacian(Float32, m, n)
 u = Gaussian{(:F,:Γ)}(zeros(m*n), (Λ + 0.1I)^4 )
 
+# Bayesian optimization
+i = CartesianIndex(m÷2, n÷2)
 for k in 1:16
     global i, u
+    # observation scheme
     H = sparse(zeros(1, m*n))
     H[L[i]] = 1
     k = kernel(Gaussian; μ=AffineMap(H, [0.]), Σ=ConstantMap(Matrix(0.02^2*I(1))))
+    # update
     _, p = Mitosis.backward(BF(), k, [W[i]])
+    # fusion
     _, u = fuse(u, p)
-    img(x) = image(reshape(x, m, n))
+    # aquisition
     if m + n > 50
         _, i_ = findmax(mean(u) + 1.5./sqrt.(diag(u.Γ))) # proxy for inverse
     else
         _, i_ = findmax(mean(u) + 2.0sqrt.(diag(inv(Matrix(u.Γ)))))
     end
-
     i = C[i_]
     println(i)
 end
+_, imax = findmax(mean(u)) # estimate of the max
 
+# plot
+using Makie
+img(x) = image(reshape(x, m, n))
 p1 = img(mean(u))
 p2 = img(W)
 _, i = findmax(W)
 scatter!(p1, [i[1]], [i[2]])
 scatter!(p2, [i[1]], [i[2]])
-_, i = findmax(mean(u))
-scatter!(p1, [C[i][1]], [C[i][2]], color=:red)
-
+scatter!(p1, [C[imax][1]], [C[imax][2]], color=:red) # red estimate
 hbox(p1, p2)
