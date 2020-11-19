@@ -36,7 +36,8 @@ u = Gaussian{(:F,:Γ)}(zeros(m*n), (Λ + 0.1I)^4 )
 
 # Bayesian optimization
 i = CartesianIndex(m÷2, n÷2)
-for k in 1:16
+is = [Tuple(i)]
+for k in 1:11
     global i, u
     # observation scheme
     H = sparse(zeros(1, m*n))
@@ -50,20 +51,25 @@ for k in 1:16
     if m + n > 50
         _, i_ = findmax(mean(u) + 1.5./sqrt.(diag(u.Γ))) # proxy for inverse
     else
-        _, i_ = findmax(mean(u) + 2.0sqrt.(diag(inv(Matrix(u.Γ)))))
+        _, i_ = findmax(mean(u) + .2sqrt.(diag(inv(Matrix(u.Γ)))))
     end
     i = C[i_]
+    push!(is, Tuple(i))
     println(i)
 end
-_, imax = findmax(mean(u)) # estimate of the max
+
+imax = C[findmax(mean(u))[2]] # estimate of the max
+i = findmax(W)[2] # truth
 
 # plot
 using Makie
 img(x) = image(reshape(x, m, n))
 p1 = img(mean(u))
+scatter!(p1, first.(is), last.(is))
+scatter!(p1, [i[1]], [i[2]], color=:green)
+scatter!(p1, [imax[1]], [imax[2]], color=:red) # red estimate
+
 p2 = img(W)
-_, i = findmax(W)
-scatter!(p1, [i[1]], [i[2]])
-scatter!(p2, [i[1]], [i[2]])
-scatter!(p1, [C[imax][1]], [C[imax][2]], color=:red) # red estimate
+scatter!(p2, [i[1]], [i[2]], color=:green)
+scatter!(p2, [imax[1]], [imax[2]], color=:red) # red estimate
 hbox(p1, p2)
