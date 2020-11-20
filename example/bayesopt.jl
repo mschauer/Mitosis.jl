@@ -1,5 +1,6 @@
 using SparseArrays
 using Mitosis
+using LinearAlgebra, Statistics
 
 """
 Graph Laplacian of a `m×n` lattice.
@@ -27,12 +28,18 @@ m, n = 20, 20
 C = CartesianIndices((m, n))
 L = LinearIndices((m, n))
 
+# tuning parameters
+κ = 4 # κ-times integrated white noise, so κ is a smoothing parameter
+ϵ = 0.1 # ϵ regularises
+σ = 0.02 # σ the amount of white noise in the image, in absence of pixel noise regularises
+λ = .2 # λ is tradeoff between exploration and exploitation in acquisition (this is just the upper confidence level acquisition function)
+
 # data
-W = [exp(-norm(([i,j]-[m÷3,n÷3]))^2/25.0) + 0.02randn() for i in 1:m, j in 1:n]
+W = [exp(-norm(([i,j]-[m÷3,n÷3]))^2/25.0) + σ*randn() for i in 1:m, j in 1:n]
 
 # prior (power of the graph laplacian)
 Λ = laplacian(Float32, m, n)
-u = Gaussian{(:F,:Γ)}(zeros(m*n), (Λ + 0.1I)^4 )
+u = Gaussian{(:F,:Γ)}(zeros(m*n), (Λ + ϵ*I)^κ)
 
 # Bayesian optimization
 i = CartesianIndex(m÷2, n÷2)
@@ -42,16 +49,16 @@ for k in 1:11
     # observation scheme
     H = sparse(zeros(1, m*n))
     H[L[i]] = 1
-    k = kernel(Gaussian; μ=AffineMap(H, [0.]), Σ=ConstantMap(Matrix(0.02^2*I(1))))
+    k = kernel(Gaussian; μ=AffineMap(H, [0.]), Σ=ConstantMap(Matrix(σ^2*I(1))))
     # update
     _, p = Mitosis.backward(BF(), k, [W[i]])
     # fusion
     _, u = fuse(u, p)
     # aquisition
     if m + n > 50
-        _, i_ = findmax(mean(u) + 1.5./sqrt.(diag(u.Γ))) # proxy for inverse
+        _, i_ = findmax(mean(u) + 2λ./sqrt.(diag(u.Γ))) # proxy for inverse
     else
-        _, i_ = findmax(mean(u) + .2sqrt.(diag(inv(Matrix(u.Γ)))))
+        _, i_ = findmax(mean(u) + λ*sqrt.(diag(inv(Matrix(u.Γ)))))
     end
     i = C[i_]
     push!(is, Tuple(i))
@@ -63,7 +70,7 @@ i = findmax(W)[2] # truth
 
 # plot
 using Makie
-img(x) = image(reshape(x, m, n))
+img(x) = heatmap(reshape(x, m, n))
 p1 = img(mean(u))
 scatter!(p1, first.(is), last.(is))
 scatter!(p1, [i[1]], [i[2]], color=:green)
