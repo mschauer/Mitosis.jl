@@ -1,6 +1,5 @@
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://mschauer.github.io/Mitosis.jl)
-[![Build Status](https://travis-ci.com/mschauer/Mitosis.jl.svg?branch=master)](https://travis-ci.com/mschauer/Mitosis.jl)
-
+[![Build Status](https://github.com/mschauer/Mitosis.jl/workflows/CI/badge.svg)](https://github.com/mschauer/Mitosis.jl/actions)
 
 # Mitosis.jl (work in progress)
 
