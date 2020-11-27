@@ -1,6 +1,6 @@
 using SparseArrays
 using Mitosis
-using LinearAlgebra, Statistics
+using LinearAlgebra, Statistics, Random
 
 """
 Graph Laplacian of a `m×n` lattice.

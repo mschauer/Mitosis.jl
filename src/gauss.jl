@@ -66,8 +66,9 @@ sqmahal(p::Gaussian, x) = norm_sqr(whiten(p, x))
 
 rand(p::Gaussian) = rand(Random.GLOBAL_RNG, p)
 randwn(rng::AbstractRNG, x::Vector) = randn!(rng, zero(x))
-randwn(rng::AbstractRNG, x) = map(xi -> randn(rng, typeof(xi)), x)
-
+function randwn(rng::AbstractRNG, x)
+    map(xi -> randn(rng, typeof(xi)), x)
+end
 rand(rng::AbstractRNG, p::Gaussian) = unwhiten(p, randwn(rng, mean(p)))
 
 _logdet(p::Gaussian{(:μ,:Σ)}) = _logdet(p.Σ, dim(p))
