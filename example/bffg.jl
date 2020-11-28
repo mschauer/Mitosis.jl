@@ -5,7 +5,13 @@ using Mitosis
 using Random, Test, LinearAlgebra, Statistics
 using Soss
 using StatsBase
-using MCMCChains
+DIAG = true
+if DIAG
+    using MCMCChains
+end
+
+N = 50_000 # samples
+
 
 # Define some vectors and matrices
 ξ0 = [1., 0.]
@@ -22,7 +28,6 @@ R = Matrix(1.0I, 1, 1)
 # and a nonlinear vector function
 f(x) = [0.8 0.5; -0.1 0.8]*[atan(x[1]), atan(x[2])] + [0.1, 0.2]
 
-# Define some transition kernels.
 
 # We define the equivalent of the Soss model
 (m = @model ξ0, H, f, P0, R, Q begin
@@ -34,8 +39,7 @@ f(x) = [0.8 0.5; -0.1 0.8]*[atan(x[1]), atan(x[2])] + [0.1, 0.2]
     # return b, d, e
 end)
 
-
-
+# Define some transition kernels.
 
 # We use AffineMap, LinearMap and ConstantMap
 # For example
@@ -85,7 +89,7 @@ c1, c2 = cp2(c)
 d = rand(k_cd(c1))
 e = rand(k_ce(c2))
 
-N = 50_000 # samples
+# sample posterior with dynamicHMC via Soss for comparison
 # monkey patch for xform
 Soss.xform(d::MvNormal, _data) = Soss.as(Array, Soss.asℝ, size(d))
 @time posterior = dynamicHMC(m(ξ0=ξ0, H=H, f=f, P0=P0, R=R, Q=Q), (b=b, d=d, e=e,), N)
@@ -117,18 +121,24 @@ lls = []
 
 end
 
-C = mean(exp.(lls))
-w = exp.(lls)/C
-# Estimate
+
+# Importance weights
+w = exp.(lls)/mean(exp.(lls))
+
+# Estimate Mitosis
 â1 = mean(getfield.(samples, :a).*w)
 v1 = mean(Mitosis.outer.(getfield.(samples, :a).-Ref(â1)).*w)
 
-
-# Kish's Effective Sample Size
-ess1 = sum(w).^2/sum(w.^2)
-
-ess2 = MCMCChains.ess(Chains(reshape(first.(getfield.(posterior, :a)), :,1,1)))
+# Estimate Soss
 â2 = mean(getfield.(posterior, :a))
 v2 = cov(getfield.(posterior, :a))
+
+
+if DIAG
+    # Kish's Effective Sample Size
+    ess1 = sum(w).^2/sum(w.^2)
+    ess2 = MCMCChains.ess(Chains(reshape(first.(getfield.(posterior, :a)), :,1,1)))
+end
+
 
 [â1 â2]
