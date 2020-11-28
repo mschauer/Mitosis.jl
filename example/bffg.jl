@@ -3,6 +3,9 @@ if !@isdefined TEST
 end
 using Mitosis
 using Random, Test, LinearAlgebra, Statistics
+using Soss
+using StatsBase
+using MCMCChains
 
 # Define some vectors and matrices
 ξ0 = [1., 0.]
@@ -22,7 +25,7 @@ f(x) = [0.8 0.5; -0.1 0.8]*[atan(x[1]), atan(x[2])] + [0.1, 0.2]
 # Define some transition kernels.
 
 # We define the equivalent of the Soss model
-:(m = @model ξ0, H, f, P0, R, Q begin
+(m = @model ξ0, H, f, P0, R, Q begin
     a ~ MvNormal(ξ0, P0) # priortransition
     b ~ MvNormal(H*a, R) # partial observation
     c ~ MvNormal(f(a), Q) # nonlineartransition
@@ -82,6 +85,12 @@ c1, c2 = cp2(c)
 d = rand(k_cd(c1))
 e = rand(k_ce(c2))
 
+N = 50_000 # samples
+# monkey patch for xform
+Soss.xform(d::MvNormal, _data) = Soss.as(Array, Soss.asℝ, size(d))
+@time posterior = dynamicHMC(m(ξ0=ξ0, H=H, f=f, P0=P0, R=R, Q=Q), (b=b, d=d, e=e,), N)
+
+
 # observations are b d e (all leaves)
 mc2, pc2 = backward(BFFG(), k_ce, e; unfused=true) # child of copy
 mc1, pc1 = backward(BFFG(), k_cd, d; unfused=true) # child of copy
@@ -93,7 +102,7 @@ m0, p0 = backward(BFFG(), k_0a, pa) # not a child of a copy
 
 samples = []
 lls = []
-for i in 1:1000
+@time for i in 1:N
     a = rand(forward(BFFG(), k_0a, m0, weighted(ξ0)))
     a1, a2 = rand(forward(BFFG(), cp2, ma, a))
     b = rand(forward(BFFG(), k_ab, ma1, a1))
@@ -108,8 +117,18 @@ for i in 1:1000
 
 end
 
-# `dynamicHMC` can't handle this yet.
-# posterior = dynamicHMC(m(ξ0=ξ0, H=H, f=f, P0=P0, R=R, Q=Q), (b=b, d=d, e=e,))
-
+C = mean(exp.(lls))
+w = exp.(lls)/C
 # Estimate
-â = sum(getfield.(samples, :a).*exp.(lls))/sum(exp.(lls))
+â1 = mean(getfield.(samples, :a).*w)
+v1 = mean(Mitosis.outer.(getfield.(samples, :a).-Ref(â1)).*w)
+
+
+# Kish's Effective Sample Size
+ess1 = sum(w).^2/sum(w.^2)
+
+ess2 = MCMCChains.ess(Chains(reshape(first.(getfield.(posterior, :a)), :,1,1)))
+â2 = mean(getfield.(posterior, :a))
+v2 = cov(getfield.(posterior, :a))
+
+[â1 â2]
