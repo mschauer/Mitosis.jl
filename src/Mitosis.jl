@@ -25,7 +25,7 @@ If the argument is a named tuple `(;a=f1, b=f1)`, `κ(x)` is defined as
 """
 kernel
 
-using MeasureTheory: AbstractMeasure, WeightedMeasure
+using MeasureTheory: AbstractMeasure
 import MeasureTheory: density, logdensity
 import Base: iterate, length
 import Random.rand
