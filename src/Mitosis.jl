@@ -106,16 +106,5 @@ include("markov.jl")
 include("rules.jl")
 include("regression.jl")
 
-function forward(bffg::BFFG, k, m, x::Weighted)
-    p = forward(bffg, k, m)(x[])
-    weighted(p, x.ll)
-end
-function forward(bffg::BFFG, k::Tuple, m, x::Weighted)
-    p = forward(bffg, k..., m, x[])
-    weighted(p, x.ll)
-end
-
-
-forwardsampler(k, k̃::Kernel, m, x; kargs...) = forward(BFFG(), k, k̃, m, x; kargs...)
 
 end # module

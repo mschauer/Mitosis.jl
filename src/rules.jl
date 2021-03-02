@@ -123,33 +123,33 @@ function forward(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, m:
     kernel(WGaussian; μ=AffineMap(Bᵒ, βᵒ), Σ=ConstantMap(Qᵒ), c=ConstantMap(0.0))
 end
 
-function forward(::BFFG, k::GaussKernel, k̃::Union{AffineGaussianKernel,LinearGaussianKernel}, m::Message{<:WGaussian{(:F,:Γ,:c)}}, x)
+function forward(bffg::BFFG, k::Kernel, m::Message, x::Weighted)
+    p = forward_(bffg, k, m, x[])
+    weighted(p, x.ll)
+end
+forward(bffg::BFFG, k::Kernel, m::Message, x) = forward_(bffg, k, m, x)
+function forward_(::BFFG, k::GaussKernel, m::Message{<:WGaussian{(:F,:Γ,:c)}}, x)
     @unpack F, Γ, c = m.q
     c1 = c
     μ, Q = k.ops
-    μ̃, Q̃ = k̃.ops
+
 
     # Proposition 7.3.
     Q⁻ = inv(Q(x))
     Qᵒ = inv(Q⁻ + Γ)
     μᵒ = Qᵒ*(Q⁻*(μ(x)) + F)
 
-    Q̃⁻ = inv(Q̃(x))
-    Q̃ᵒ = inv(Q̃⁻ + Γ)
-    μ̃ᵒ = Q̃ᵒ*(Q̃⁻*(μ̃(x)) + F)
+ #   Q̃⁻ = inv(Q̃(x))
+ #   Q̃ᵒ = inv(Q̃⁻ + Γ)
+ #   μ̃ᵒ = Q̃ᵒ*(Q̃⁻*(μ̃(x)) + F)
 
+ #   c = logpdf0(μ(x), Q(x)) - logpdf0(μ̃(x), Q̃(x))
+ #   c += logpdf0(μ̃ᵒ, Q̃ᵒ) - logpdf0(μᵒ, Qᵒ)
+ #   == logpdf0(μ(x) - Γ\F, Q(x) + inv(Γ)) - logpdf0(μ̃(x)  - Γ\F, Q̃(x) + inv(Γ)) 
+    
+ #   logdensity(m.q0, x) - c1 == logpdf0(μ̃(x)  - Γ\F, Q̃(x) + inv(Γ)) 
 
-
-    c = logpdf0(μ(x), Q(x)) - logpdf0(μ̃(x), Q̃(x))
-    c += logpdf0(μ̃ᵒ, Q̃ᵒ) - logpdf0(μᵒ, Qᵒ)
-    c_ = logpdf0(μ(x) - Γ\F, Q(x) + inv(Γ)) - logpdf0(μ̃(x)  - Γ\F, Q̃(x) + inv(Γ)) 
-    c2 = logdensity(m.q0, x) - c1
-    c2_ = logpdf0(μ̃(x)  - Γ\F, Q̃(x) + inv(Γ)) 
-
-    #- logdensity(m.q0, x)
-    println(c2, " ", c2_)
-    @assert c2 ≈ c2_
-
+    c = logpdf0(μ(x) - Γ\F, Q(x) + inv(Γ)) - logdensity(m.q0, x) + c1
     WGaussian{(:μ,:Σ,:c)}(μᵒ, Qᵒ, c)
 end
 

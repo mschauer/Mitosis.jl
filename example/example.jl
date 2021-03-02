@@ -98,7 +98,7 @@ x0 = rand(forward(BFFG(), priortransition, m, weighted(ξ0)))
 x0a, x0b = rand(forward(BFFG(), cp2, m0, x0))
 y0 = rand(forward(BFFG(), partialobservation, m0b, x0b))
             # guided sampler targets nonlineartransition, needs to know linearizedtransition
-x1 = rand(forward(BFFG(), (nonlineartransition, linearizedtransition), m0a, x0a))
+x1 = rand(forward(BFFG(), nonlineartransition, m0a, x0a))
 x1a, x1b = rand(forward(BFFG(), cp2, m1, x1))
 y1 = rand(forward(BFFG(), partialobservation, m1b, x1b))
 x2 = rand(forward(BFFG(), fullobservation, m1a, x1a))

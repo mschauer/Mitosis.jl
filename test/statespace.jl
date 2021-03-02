@@ -273,7 +273,7 @@ end
     for i in 1:K
         x = Mitosis.rand(p0ᵒ)
         @assert x.ll == 0
-        p1ᵒ = forward(BFFG(), transition2, transitiontilde, m0b, x[])
+        p1ᵒ = forward(BFFG(), transition2, m0b, x[])
         y = Mitosis.rand(p1ᵒ)
         @assert y.ll != 0
         push!(Y, (y[], y.ll))
