@@ -45,10 +45,13 @@ function Base.convert(::Type{WGaussian{(:F,:Γ,:c)}}, p::WGaussian{(:μ,:Σ,:c)}
     Γ = inv(p.Σ)
     return WGaussian{(:F,:Γ,:c)}(Γ*p.μ, Γ, p.c)
 end
+
 function Base.convert(::Type{WGaussian{(:μ,:Σ,:c)}}, p::WGaussian{(:F,:Γ,:c)})
     Σ = inv(p.Γ)
     return WGaussian{(:μ,:Σ,:c)}(Σ*p.F, Σ, p.c)
 end
+Base.convert(::Type{WGaussian{(:μ,:Σ,:c)}}, p::Leaf) = convert(WGaussian{(:μ,:Σ,:c)}, p[])
+Base.convert(::Type{WGaussian{(:F,:Γ,:c)}}, p::Leaf) = convert(WGaussian{(:F,:Γ,:c)}, p[])
 #=
 Base.:(==)(p1::WGaussian, p2::WGaussian) = mean(p1) == mean(p2) && cov(p1) == cov(p2)
 Base.isapprox(p1::WGaussian, p2::WGaussian; kwargs...) =

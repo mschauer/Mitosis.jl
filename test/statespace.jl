@@ -230,7 +230,7 @@ end
 
 
     # some more tests
-    @test logdensity(backwardfilter(transition2, x2)[2], x1) ≈ logdensity(transition2(x1), x2)
+    @test logdensity(backwardfilter(transition2, x2)[2][], x1) ≈ logdensity(transition2(x1), x2)
     @test logdensity(fuse(backwardfilter(transition2, x2; unfused=true)[2])[2], x1) ≈ logdensity(transition2(x1), x2)
 
     _, q = fuse(backwardfilter(transition2, x2; unfused=true)[2], backwardfilter(transition2, x2; unfused=true)[2])
