@@ -230,7 +230,7 @@ end
 
 
     # some more tests
-    @test logdensity(backwardfilter(transition2, x2)[2], x1) ≈ logdensity(transition2(x1), x2)
+    @test logdensity(backwardfilter(transition2, x2)[2][], x1) ≈ logdensity(transition2(x1), x2)
     @test logdensity(fuse(backwardfilter(transition2, x2; unfused=true)[2])[2], x1) ≈ logdensity(transition2(x1), x2)
 
     _, q = fuse(backwardfilter(transition2, x2; unfused=true)[2], backwardfilter(transition2, x2; unfused=true)[2])
@@ -273,7 +273,7 @@ end
     for i in 1:K
         x = Mitosis.rand(p0ᵒ)
         @assert x.ll == 0
-        p1ᵒ = forward(BFFG(), transition2, transitiontilde, m0b, x[])
+        p1ᵒ = forward(BFFG(), transition2, m0b, x[])
         y = Mitosis.rand(p1ᵒ)
         @assert y.ll != 0
         push!(Y, (y[], y.ll))
