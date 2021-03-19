@@ -1,0 +1,10 @@
+[deps]
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+MeasureTheory = "eadaa1a4-d27c-401d-8699-e962e1bbc33b"
+Mitosis = "e74b8d68-74d0-42b9-99ba-91d43d3ab0e8"
+MitosisStochasticDiffEq = "6d72f4e6-0ed6-45a8-9268-ca10853c051d"
+NewickTree = "b0a14db8-6308-4ebc-8917-f72cd81f5094"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
