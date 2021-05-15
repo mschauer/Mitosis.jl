@@ -60,6 +60,14 @@ dim(p::Gaussian) = length(mean(p))
 dim(p::Gaussian{(:Σ,)}) = size(p.Σ, 1)
 whiten(p::Gaussian{(:μ, :Σ)}, x) = lchol(p.Σ)\(x - p.μ)
 unwhiten(p::Gaussian{(:μ, :Σ)}, z) = lchol(p.Σ)*z + p.μ
+function whiten(p::Gaussian{(:F, :Γ)}, x) 
+    L= lchol(p.Γ)
+    L*x - L'\p.F
+end
+function unwhiten(p::Gaussian{(:F, :Γ)}, z) 
+    L = lchol(p.Γ)
+    L\(z + L'\p.F)
+end
 whiten(p::Gaussian{(:Σ,)}, x) = lchol(p.Σ)\x
 unwhiten(p::Gaussian{(:Σ,)}, z) = lchol(p.Σ)*z
 sqmahal(p::Gaussian, x) = norm_sqr(whiten(p, x))
