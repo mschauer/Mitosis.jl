@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Home · Mitosis.jl</title><script data-outdated-warner src="assets/warner.js"></script><link rel="canonical" href="https://mschauer.github.io/Mitosis.jl/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href>Mitosis.jl</a></span></div><form class="docs-search" action="search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Home</a><ul class="internal"><li><a class="tocitem" href="#Based-on-MeasureTheory.jl"><span>Based on MeasureTheory.jl</span></a></li><li><a class="tocitem" href="#Key-concepts"><span>Key concepts</span></a></li><li><a class="tocitem" href="#Backward-and-forward-passes"><span>Backward and forward passes</span></a></li><li><a class="tocitem" href="#Example:-Bayesian-regression-with-BF()"><span>Example: Bayesian regression with <code>BF()</code></span></a></li><li><a class="tocitem" href="#References"><span>References</span></a></li></ul></li><li><a class="tocitem" href="idx/">Index</a></li><li><a class="tocitem" href="library/">Library</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Home</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Home</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/mschauer/Mitosis.jl/blob/master/docs/src/index.md#L" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Mitosis"><a class="docs-heading-anchor" href="#Mitosis">Mitosis</a><a id="Mitosis-1"></a><a class="docs-heading-anchor-permalink" href="#Mitosis" title="Permalink"></a></h1><p>Incorporate discrete and continuous time Markov processes as building blocks into probabilistic graphical models.</p><h2 id="Based-on-MeasureTheory.jl"><a class="docs-heading-anchor" href="#Based-on-MeasureTheory.jl">Based on MeasureTheory.jl</a><a id="Based-on-MeasureTheory.jl-1"></a><a class="docs-heading-anchor-permalink" href="#Based-on-MeasureTheory.jl" title="Permalink"></a></h2><p>Mitosis defines its probability distributions, densities in terms of MeasureTheory.jl.</p><pre><code class="language-julia">m = [1.0, 0.5]
+K = Matrix(1.0I, 2, 2)
+p = Gaussian(μ=m, Σ=K)
+
+mean(p) == m
+
+# output
+true</code></pre><h2 id="Key-concepts"><a class="docs-heading-anchor" href="#Key-concepts">Key concepts</a><a id="Key-concepts-1"></a><a class="docs-heading-anchor-permalink" href="#Key-concepts" title="Permalink"></a></h2><h3 id="Kernels-or-distribution-valued-maps"><a class="docs-heading-anchor" href="#Kernels-or-distribution-valued-maps">Kernels or distribution valued maps</a><a id="Kernels-or-distribution-valued-maps-1"></a><a class="docs-heading-anchor-permalink" href="#Kernels-or-distribution-valued-maps" title="Permalink"></a></h3><p>The core concept of Mitosis is the Markov <a href="library/#MeasureTheory.kernel"><code>kernel</code></a>.</p><p>A kernel <code>κ = kernel(Gaussian, μ=f, Σ=g)</code> returns a callable which returns a measure with parameters determined by functions <code>f</code>, <code>g</code>...</p><pre><code class="language-julia">f(x) = x*m
+g(_) = K
+k = kernel(Gaussian; μ=f, Σ=g)
+mean(k(3.0)) == 3*m &amp;&amp; cov(k(3.0)) == K
+
+# output
+true</code></pre><h3 id="Linear-and-affine-Gaussian-kernel"><a class="docs-heading-anchor" href="#Linear-and-affine-Gaussian-kernel">Linear and affine Gaussian kernel</a><a id="Linear-and-affine-Gaussian-kernel-1"></a><a class="docs-heading-anchor-permalink" href="#Linear-and-affine-Gaussian-kernel" title="Permalink"></a></h3><p>Gaussian <code>kernel</code> become especially powerful if combined with linear and affine mean functions, <a href="library/#Mitosis.AffineMap"><code>AffineMap</code></a>, <a href="library/#Mitosis.LinearMap"><code>LinearMap</code></a>, <a href="library/#Mitosis.ConstantMap"><code>ConstantMap</code></a>:</p><pre><code class="language-julia">B = [0.8 0.5; -0.1 0.8]
+β = [0.1, 0.2]
+Q = [0.2 0.0; 0.0 1.0]
+
+x = [0.112, -1.22]
+b = AffineMap(B, β)
+
+b(x) == B*x + β
+
+# output
+
+true</code></pre><p>Kernels with affine <code>mean</code> and constant covariance propagate Gaussian uncertainty:</p><pre><code class="language-julia">
+k = kernel(Gaussian, μ = AffineMap(B, β), Σ=ConstantMap(Q))
+
+m = [1.0, 0.5]
+K = Matrix(1.0I, 2, 2)
+p = Gaussian(μ=m, Σ=K)
+
+k(p) isa Gaussian
+
+# output
+
+true</code></pre><h2 id="Backward-and-forward-passes"><a class="docs-heading-anchor" href="#Backward-and-forward-passes">Backward and forward passes</a><a id="Backward-and-forward-passes-1"></a><a class="docs-heading-anchor-permalink" href="#Backward-and-forward-passes" title="Permalink"></a></h2><p>Backward and forward functions with signature `</p><pre><code class="nohighlight">message, marginal = backward(BF(), kernel, argument)</code></pre><pre><code class="nohighlight">marginal = forward(BF(), kernel, message)(argument)</code></pre><p>define a generic interface to a 2-pass backward filtering, forward smoothing algorithm. For each transition, the backward pass produces a message for the forward pass.</p><h2 id="Example:-Bayesian-regression-with-BF()"><a class="docs-heading-anchor" href="#Example:-Bayesian-regression-with-BF()">Example: Bayesian regression with <code>BF()</code></a><a id="Example:-Bayesian-regression-with-BF()-1"></a><a class="docs-heading-anchor-permalink" href="#Example:-Bayesian-regression-with-BF()" title="Permalink"></a></h2><p><code>BF()</code> specifies the exact (conjugate) linear-Gaussian backward filter, forward smoothing version without importance weights. <a href="library/#Mitosis.BFFG"><code>BFFG()</code></a> defines a more general approach which also works for non-linear transitions. Let&#39;s first consider the simpler case, in a Bayesian regression example:</p><p><span>$\beta \sim N(\mu_0, \sigma^2 V_0).$</span></p><p><span>$Y \mid \beta \sim N(X\beta, \sigma^2)$</span></p><h3 id="Data"><a class="docs-heading-anchor" href="#Data">Data</a><a id="Data-1"></a><a class="docs-heading-anchor-permalink" href="#Data" title="Permalink"></a></h3><p>Small data set.</p><pre><code class="language-julia">x = [18.25 19.75 16.5 18.25 19.50 16.25 17.25 19.00 16.25 17.50][:]
+y = [36 42 33 39 43 34 37 41 27 30][:]
+n = length(x)
+
+# output
+10</code></pre><h3 id="Prior"><a class="docs-heading-anchor" href="#Prior">Prior</a><a id="Prior-1"></a><a class="docs-heading-anchor-permalink" href="#Prior" title="Permalink"></a></h3><p>The conjugate prior on the parameter <span>$\beta$</span> is Gaussian,</p><p><span>$\beta \sim N(\mu_0, \sigma^2 V_0).$</span></p><p>We write it as kernel (without arguments) as well:</p><pre><code class="language-julia">σ2 = 8.0 # noise level
+
+μ0 = zeros(2)
+V0 = 10*I(2)
+Σ0 = σ2*V0 # prior
+
+prior = kernel(Gaussian; μ=ConstantMap(μ0), Σ=ConstantMap(Σ0))
+
+mean(prior()) == μ0
+
+# output
+true</code></pre><h3 id="Model"><a class="docs-heading-anchor" href="#Model">Model</a><a id="Model-1"></a><a class="docs-heading-anchor-permalink" href="#Model" title="Permalink"></a></h3><p>Conditional on the parameter vector <span>$\beta$</span>, a regression model:</p><p><span>$Y \mid \beta \sim N(X\beta, \sigma^2)$</span> where <code>X</code> is the design matrix.</p><p>Thus we can express this as linear Gaussian kernel:</p><pre><code class="language-julia">X = [x ones(n)] # Design matrix
+
+
+Σ = Diagonal(σ2*ones(n)) # noise covariance
+
+model = kernel(Gaussian; μ=LinearMap(X), Σ=ConstantMap(Σ))
+
+nothing
+# output
+</code></pre><h3 id="Combined-forward-model"><a class="docs-heading-anchor" href="#Combined-forward-model">Combined forward model</a><a id="Combined-forward-model-1"></a><a class="docs-heading-anchor-permalink" href="#Combined-forward-model" title="Permalink"></a></h3><p>Summarizing, with prior and model, we have</p><pre><code class="nohighlight">β = rand(prior())
+y = rand(model(β))</code></pre><p>Think of this as the composition of kernels.</p><h3 id="Backward-pass"><a class="docs-heading-anchor" href="#Backward-pass">Backward pass</a><a id="Backward-pass-1"></a><a class="docs-heading-anchor-permalink" href="#Backward-pass" title="Permalink"></a></h3><p>The backward pass takes observations <span>$y$</span> into account and propagates uncertainty backward through the model.</p><pre><code class="language-julia">m2, p2 = backward(BF(), model, y)
+m1, p1 = backward(BF(), prior, p2)
+
+nothing
+# output
+</code></pre><p>At each step it produces a filtered distribution <code>p1, p2</code> and a message <code>m1, m2</code> for the forward pass.</p><h3 id="Forward-pass"><a class="docs-heading-anchor" href="#Forward-pass">Forward pass</a><a id="Forward-pass-1"></a><a class="docs-heading-anchor-permalink" href="#Forward-pass" title="Permalink"></a></h3><p>This <code>BF()</code> forward pass computes marginal distributions of latents. Because the parameters <span>$\beta$</span> are the latent outcome of the prior, we need at least one step of the forward pass. A second step of the forward pass would just give the observations back.</p><pre><code class="language-julia">posterior = forward(BF(), prior, m1)()
+# observations = forward(BF(), model, m2)(posterior)
+
+mean(posterior), cov(posterior)
+
+# output
+([2.4874650784715016, -8.120051139323095], [0.1700435105146037 -3.00522441850067; -3.00522441850067 53.904213732907884])</code></pre><h2 id="References"><a class="docs-heading-anchor" href="#References">References</a><a id="References-1"></a><a class="docs-heading-anchor-permalink" href="#References" title="Permalink"></a></h2><ul><li>Frank van der Meulen, Moritz Schauer (2020): Automatic Backward Filtering Forward Guiding for Markov processes and graphical models. <a href="https://arxiv.org/abs/2010.03509">[arXiv:2010.03509]</a>.</li></ul></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="idx/">Index »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Friday 18 June 2021 18:43">Friday 18 June 2021</span>. Using Julia version 1.6.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
