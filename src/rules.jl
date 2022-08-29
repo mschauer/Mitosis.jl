@@ -1,4 +1,4 @@
-logpdf0(x, P) = logdensity(Gaussian{(:Σ,)}(P), x)
+logpdf0(x, P) = logdensityof(Gaussian{(:Σ,)}(P), x)
 
 struct Message{T,S}
     q0::S
@@ -145,11 +145,11 @@ function forward_(::BFFG, k::GaussKernel, m::Message{<:WGaussian{(:F,:Γ,:c)}}, 
 
  #   c = logpdf0(μ(x), Q(x)) - logpdf0(μ̃(x), Q̃(x))
  #   c += logpdf0(μ̃ᵒ, Q̃ᵒ) - logpdf0(μᵒ, Qᵒ)
- #   == logpdf0(μ(x) - Γ\F, Q(x) + inv(Γ)) - logpdf0(μ̃(x)  - Γ\F, Q̃(x) + inv(Γ)) 
-    
- #   logdensity(m.q0, x) - c1 == logpdf0(μ̃(x)  - Γ\F, Q̃(x) + inv(Γ)) 
+ #   == logpdf0(μ(x) - Γ\F, Q(x) + inv(Γ)) - logpdf0(μ̃(x)  - Γ\F, Q̃(x) + inv(Γ))
 
-    c = logpdf0(μ(x) - Γ\F, Q(x) + inv(Γ)) - logdensity(m.q0, x) + c1
+ #   logdensityof(m.q0, x) - c1 == logpdf0(μ̃(x)  - Γ\F, Q̃(x) + inv(Γ))
+
+    c = logpdf0(μ(x) - Γ\F, Q(x) + inv(Γ)) - logdensityof(m.q0, x) + c1
     WGaussian{(:μ,:Σ,:c)}(μᵒ, Qᵒ, c)
 end
 
@@ -165,8 +165,8 @@ function backward(::BFFG, ::Copy, args::Union{Leaf{<:WGaussian{(:μ,:Σ,:c)}},WG
         c += c2
         b isa Leaf|| (c += logdensity0(Gaussian{(:F,:Γ)}(F2, H2)))
     end
-    Δ = -logdensity(Gaussian{(:F,:Γ)}(F, H), 0F)
-    
+    Δ = -logdensityof(Gaussian{(:F,:Γ)}(F, H), 0F)
+
     message(), convert(WGaussian{(:μ,:Σ,:c)}, WGaussian{(:F,:Γ,:c)}(F, H, Δ + c))
 end
 
@@ -184,15 +184,15 @@ end
 function backward(::BFFG, ::Copy, a::Union{Leaf{<:WGaussian{(:F,:Γ,:c)}}, WGaussian{(:F,:Γ,:c)}}, args...; unfused=true)
     unfused = false
     F, H, c = params(convert(WGaussian{(:F,:Γ,:c)}, a))
-    a isa Leaf || (c += logdensity(Gaussian{(:F,:Γ)}(F, H), 0F))
+    a isa Leaf || (c += logdensityof(Gaussian{(:F,:Γ)}(F, H), 0F))
     for b in args
         F2, H2, c2 = params(convert(WGaussian{(:F,:Γ,:c)}, b))
         F += F2
         H += H2
         c += c2
-        b isa Leaf || (c += logdensity(Gaussian{(:F,:Γ)}(F2, H2), 0F2))
+        b isa Leaf || (c += logdensityof(Gaussian{(:F,:Γ)}(F2, H2), 0F2))
     end
-    Δ = -logdensity(Gaussian{(:F,:Γ)}(F, H), 0F)
+    Δ = -logdensityof(Gaussian{(:F,:Γ)}(F, H), 0F)
     message(), WGaussian{(:F,:Γ,:c)}(F, H, Δ + c)
 end
 

@@ -31,11 +31,11 @@ moment1(p::WGaussian{(:F, :Γ, :c)}) = p.c*p.Γ\p.F
 Base.isapprox(p1::WGaussian, p2::WGaussian; kwargs...) =
     all(isapprox.(Tuple(params(p1)), Tuple(params(p2)); kwargs...))
 
-function MeasureTheory.logdensity(p::WGaussian{(:F,:Γ,:c)}, x)
+function MeasureTheory.logdensityof(p::WGaussian{(:F,:Γ,:c)}, x)
     C = cholesky_(sym(p.Γ))
     p.c - x'*p.Γ*x/2 + x'*p.F - p.F'*(C\p.F)/2  + logdet(C)/2 - dim(p)*log(2pi)/2
 end
-density(p::WGaussian, x) = exp(logdensity(p, x))
+densityof(p::WGaussian, x) = exp(logdensityof(p, x))
 
 StatsBase.rand(p::WGaussian) = rand(Random.GLOBAL_RNG, p)
 StatsBase.rand(RNG::AbstractRNG, p::WGaussian{(:μ,:Σ,:c)}) = weighted(unwhiten(Gaussian{(:μ,:Σ)}(p.μ, p.Σ), randn!(RNG, zero(mean(p)))), p.c)
@@ -75,7 +75,7 @@ sqmahal(p::WGaussian, x) = norm_sqr(whiten(p, x))
 rand(p::WGaussian) = rand(Random.GLOBAL_RNG, p)
 rand(RNG::AbstractRNG, p::WGaussian) = unwhiten(p, randn!(RNG, zero(mean(p))))
 
-MeasureTheory.logdensity(p::WGaussian, x) = -(sqmahal(p,x) + _logdet(p, dim(p)) + dim(p)*log(2pi))/2
-MeasureTheory.density(p::WGaussian, x) = exp(logpdf(p, x))
+MeasureTheory.logdensityof(p::WGaussian, x) = -(sqmahal(p,x) + _logdet(p, dim(p)) + dim(p)*log(2pi))/2
+MeasureTheory.densityof(p::WGaussian, x) = exp(logpdf(p, x))
 
 =#

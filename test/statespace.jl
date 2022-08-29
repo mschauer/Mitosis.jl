@@ -145,7 +145,7 @@ end
 
     H = inv(cov(p1))
     q1 = WGaussian(F=H*mean(p1), Γ=H, c=0.0)
-    @test logdensity(q1, x0) ≈ logdensity(p1, x0)
+    @test logdensityof(q1, x0) ≈ logdensityof(p1, x0)
 
     q0 = backward(BFFG(), transition1, q1)[2]
 
@@ -155,7 +155,7 @@ end
     @test Φ*P0*Φ' ≈ (cov(p1) + Q)
 
     pp = transition1(x0)⊕Gaussian(μ=0*p1.μ, Σ=p1.Σ)
-    @test logdensity(q0, x0) ≈ logdensity(pp, p1.μ)
+    @test logdensityof(q0, x0) ≈ logdensityof(pp, p1.μ)
 
     @test 0.0 ≈ -logdet(pp.Σ)/2 - (q0.c + logdet(q0.Γ)/2) atol=1e-10
 end
@@ -192,7 +192,7 @@ end
 
     # as byproduct this just computed the model evidence as function
     # of ξ0
-    @test logdensity(evi, ξ0) ≈ logdensity(Gaussian(;μ=μ[5:8], Σ=Σ[5:8,5:8]), vcat(x2, y0, y1))
+    @test logdensityof(evi, ξ0) ≈ logdensityof(Gaussian(;μ=μ[5:8], Σ=Σ[5:8,5:8]), vcat(x2, y0, y1))
 
 
     # Alternative: p0_ is the conditional distribution of x0
@@ -230,12 +230,12 @@ end
 
 
     # some more tests
-    @test logdensity(backwardfilter(transition2, x2)[2][], x1) ≈ logdensity(transition2(x1), x2)
-    @test logdensity(fuse(backwardfilter(transition2, x2; unfused=true)[2])[2], x1) ≈ logdensity(transition2(x1), x2)
+    @test logdensityof(backwardfilter(transition2, x2)[2][], x1) ≈ logdensityof(transition2(x1), x2)
+    @test logdensityof(fuse(backwardfilter(transition2, x2; unfused=true)[2])[2], x1) ≈ logdensityof(transition2(x1), x2)
 
     _, q = fuse(backwardfilter(transition2, x2; unfused=true)[2], backwardfilter(transition2, x2; unfused=true)[2])
-    @test logdensity(q, x1) ≈ 2logdensity(transition2(x1), x2)
-    @test logdensity(p1, x1) ≈ logdensity(observation(x1), y1) + logdensity(transition2(x1), x2)
+    @test logdensityof(q, x1) ≈ 2logdensityof(transition2(x1), x2)
+    @test logdensityof(p1, x1) ≈ logdensityof(observation(x1), y1) + logdensityof(transition2(x1), x2)
 
 end
 
@@ -258,7 +258,7 @@ end
 
     # as byproduct this just computed the model evidence as function
     # of ξ0
-    #@test logdensity(evi, ξ0) ≈ logdensity(Gaussian(;μ=μ[5:8], Σ=Σ[5:8,5:8]), vcat(x2, y0, y1))
+    #@test logdensityof(evi, ξ0) ≈ logdensityof(Gaussian(;μ=μ[5:8], Σ=Σ[5:8,5:8]), vcat(x2, y0, y1))
 
 
 
@@ -282,6 +282,6 @@ end
 
     # second step gives the conditional marginal of x1
     π1 = Mitosis.conditional(Gaussian(;μ=μ, Σ=Σ), 3:4, 5:8, vcat(x2, y0, y1))
-    @test mean(π1) ≈ mean(first.(Y) .* exp.(last.(Y)))*exp(logdensity(evi2, ξ0)-logdensity(evi, ξ0)) atol=atol
+    @test mean(π1) ≈ mean(first.(Y) .* exp.(last.(Y)))*exp(logdensityof(evi2, ξ0)-logdensityof(evi, ξ0)) atol=atol
 
 end

@@ -81,14 +81,14 @@ rand(rng::AbstractRNG, p::Gaussian) = unwhiten(p, randwn(rng, mean(p)))
 
 _logdet(p::Gaussian{(:μ,:Σ)}) = _logdet(p.Σ, dim(p))
 _logdet(p::Gaussian{(:Σ,)}) = logdet(p.Σ)
-MeasureTheory.logdensity(p::Gaussian, x) = -(sqmahal(p,x) + _logdet(p) + dim(p)*log(2pi))/2
-MeasureTheory.density(p::Gaussian, x) = exp(logdensity(p, x))
-function MeasureTheory.logdensity(p::Gaussian{(:F,:Γ)}, x)
+MeasureTheory.logdensityof(p::Gaussian, x) = -(sqmahal(p,x) + _logdet(p) + dim(p)*log(2pi))/2
+MeasureTheory.densityof(p::Gaussian, x) = exp(logdensityof(p, x))
+function MeasureTheory.logdensityof(p::Gaussian{(:F,:Γ)}, x)
     C = cholesky(sym(p.Γ))
     -x'*p.Γ*x/2 + x'*p.F - p.F'*(C\p.F)/2  + logdet(C)/2 - dim(p)*log(2pi)/2
 end
 
-function logdensity0(p::Gaussian{(:F,:Γ)})
+function logdensityof(p::Gaussian{(:F,:Γ)})
     C = cholesky(sym(p.Γ))
      - p.F'*(C\p.F)/2  + logdet(C)/2 - dim(p)*log(2pi)/2
 end
