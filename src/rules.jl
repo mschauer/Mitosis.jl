@@ -201,5 +201,5 @@ function forward(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, m:
     Dirac(weighted(y[], x.ll))
 end
 function forward(::BFFG, ::Copy{2}, _, x::Weighted)
-    MeasureTheory.Dirac((x, weighted(x[])))
+    Dirac((x, weighted(x[])))
 end

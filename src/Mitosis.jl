@@ -4,8 +4,10 @@ using UnPack
 using Statistics, StatsBase
 using LinearAlgebra
 using Random
-using MeasureTheory
-import MeasureTheory: kernel
+# using MeasureTheory
+# import MeasureTheory: kernel, mapcall
+# import MeasureTheory.Kernel, MeasureTheory.kernel
+include("mt.jl")
 
 """
     kernel(f, M)
@@ -25,8 +27,8 @@ If the argument is a named tuple `(;a=f1, b=f1)`, `κ(x)` is defined as
 """
 kernel
 
-using MeasureTheory: AbstractMeasure
-import MeasureTheory: density, logdensity
+#using MeasureTheory: AbstractMeasure
+#import MeasureTheory: density, logdensity
 import Base: iterate, length
 import Random.rand
 import StatsBase.sample
@@ -34,7 +36,6 @@ import StatsBase.sample
 export Gaussian, Copy, fuse, weighted
 export Traced, BFFG, left′, right′, forward, backward, backwardfilter, forwardsampler
 export BF, density, logdensity, ⊕, kernel, correct, Kernel, WGaussian, Gaussian, ConstantMap, AffineMap, LinearMap, GaussKernel
-
 
 function independent_sum
 end
