@@ -5,8 +5,8 @@ struct WGaussian{P,T} <: AbstractMeasure
 end
 WGaussian{P}(nt::NamedTuple{P,T}) where {P,T} = WGaussian{P,T}(nt)
 WGaussian{P}(args...) where {P} = WGaussian(NamedTuple{P}(args))
-WGaussian(;args...) = WGaussian(args.data)
-WGaussian{P}(;args...) where {P} = WGaussian{P}(args.data)
+WGaussian(;args...) = WGaussian(values(args))
+WGaussian{P}(;args...) where {P} = WGaussian{P}(values(args))
 
 # the following propagates uncertainty if `μ` is `Gaussian`
 WGaussian(par::NamedTuple{(:μ,:Σ,:c),Tuple{T,S,U}}) where {T<:WGaussian,S,U} = WGaussian((;μ=mean(par.μ), Σ=par.Σ +cov(par.μ), c=par.c + par.μ.c))

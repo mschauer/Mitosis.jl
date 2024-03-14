@@ -25,8 +25,8 @@ struct Gaussian{P,T} <: AbstractMeasure
 end
 Gaussian{P}(nt::NamedTuple{P,T}) where {P,T} = Gaussian{P,T}(nt)
 Gaussian{P}(args...) where {P} = Gaussian(NamedTuple{P}(args))
-Gaussian(;args...) = Gaussian(args.data)
-Gaussian{P}(;args...) where {P} = Gaussian{P}(args.data)
+Gaussian(;args...) = Gaussian(values(args))
+Gaussian{P}(;args...) where {P} = Gaussian{P}(values(args))
 
 # the following propagates uncertainty if `μ` is `Gaussian`
 Gaussian(par::NamedTuple{(:μ,:Σ),Tuple{T,S}}) where {T<:Gaussian,S} = Gaussian((;μ = mean(par.μ),Σ=par.Σ +cov(par.μ)))

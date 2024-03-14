@@ -7,7 +7,6 @@ using Random
 # using MeasureTheory
 # import MeasureTheory: kernel, mapcall
 # import MeasureTheory.Kernel, MeasureTheory.kernel
-include("mt.jl")
 
 """
     kernel(f, M)
@@ -32,6 +31,9 @@ kernel
 import Base: iterate, length
 import Random.rand
 import StatsBase.sample
+
+include("mt.jl")
+
 
 export Gaussian, Copy, fuse, weighted
 export Traced, BFFG, left′, right′, forward, backward, backwardfilter, forwardsampler

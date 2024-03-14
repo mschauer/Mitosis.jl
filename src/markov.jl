@@ -1,9 +1,7 @@
 
-mapcall(t) = map(func -> func(), t)
-(k::Kernel{M,<:NamedTuple})() where {M} = M(; mapcall(k.ops)...)
 
-const GaussKernel = Kernel{<:Gaussian}
-#const Copy = Kernel{<:Dirac}
+const GaussKernel = Kernel{Gaussian}
+#const Copy = Kernel{Dirac}
 
 """
     AffineMap(B, β)
