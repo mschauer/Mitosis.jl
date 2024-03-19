@@ -119,11 +119,24 @@ Base.:*(M, p::Gaussian{P}) where {P} = Gaussian{P}(M * mean(p), Σ = M * cov(p) 
 
 """
     conditional(p::Gaussian, A, B, xB)
+    conditional(p::Gaussian, A, B)
 
 Conditional distribution of `X[i for i in A]` given
-`X[i for i in B] == xB` if ``X ~ P``.
+`X[i for i in B] == xB` if ``X ~ P``. The version without
+the argument `xB` returns a kernel mapping `xB` to the conditional.
 """
 function conditional(p::Gaussian{(:μ, :Σ)}, A, B, xB)
     Z = p.Σ[A,B]*inv(p.Σ[B,B])
     Gaussian{(:μ, :Σ)}(p.μ[A] + Z*(xB - p.μ[B]), p.Σ[A,A] - Z*p.Σ[B,A])
+end
+
+function conditional(p::Gaussian{(:μ, :Σ)}, A, B)
+    Z = p.Σ[A,B]*inv(p.Σ[B,B])
+    β = p.μ[A] - Z*p.μ[B]
+    Σ = p.Σ[A,A] - Z*p.Σ[B,A]
+    kernel(Gaussian; μ=AffineMap(Z, β), Σ=ConstantMap(Σ))
+end
+
+function marginal(p::Gaussian{(:μ, :Σ)}, A)
+    Gaussian{(:μ, :Σ)}(p.μ[A], p.Σ[A,A])
 end
