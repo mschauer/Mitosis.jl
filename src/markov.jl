@@ -1,10 +1,7 @@
-import MeasureTheory.Kernel, MeasureTheory.kernel
 
-MeasureTheory.mapcall(t) = map(func -> func(), t)
-(k::Kernel{M,<:NamedTuple})() where {M} = M(; MeasureTheory.mapcall(k.ops)...)
 
-const GaussKernel = MeasureTheory.Kernel{<:Gaussian}
-#const Copy = MeasureTheory.Kernel{<:Dirac}
+const GaussKernel = Kernel{Gaussian}
+#const Copy = Kernel{Dirac}
 
 """
     AffineMap(B, β)

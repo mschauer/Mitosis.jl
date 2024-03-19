@@ -6,7 +6,7 @@ import LinearAlgebra.logdet
     Gaussian{(:μ,:Σ)}
     Gaussian{(:F,:Γ)}
 
-Mitosis provides the measure `Gaussian` based on MeasureTheory.jl,
+Mitosis provides the measure `Gaussian`,
 with a mean `μ` and covariance `Σ` parametrization,
 or parametrised by natural parameters `F = Γ μ`, `Γ = Σ⁻¹`.
 
@@ -25,8 +25,8 @@ struct Gaussian{P,T} <: AbstractMeasure
 end
 Gaussian{P}(nt::NamedTuple{P,T}) where {P,T} = Gaussian{P,T}(nt)
 Gaussian{P}(args...) where {P} = Gaussian(NamedTuple{P}(args))
-Gaussian(;args...) = Gaussian(args.data)
-Gaussian{P}(;args...) where {P} = Gaussian{P}(args.data)
+Gaussian(;args...) = Gaussian(values(args))
+Gaussian{P}(;args...) where {P} = Gaussian{P}(values(args))
 
 # the following propagates uncertainty if `μ` is `Gaussian`
 Gaussian(par::NamedTuple{(:μ,:Σ),Tuple{T,S}}) where {T<:Gaussian,S} = Gaussian((;μ = mean(par.μ),Σ=par.Σ +cov(par.μ)))
@@ -81,9 +81,9 @@ rand(rng::AbstractRNG, p::Gaussian) = unwhiten(p, randwn(rng, mean(p)))
 
 _logdet(p::Gaussian{(:μ,:Σ)}) = _logdet(p.Σ, dim(p))
 _logdet(p::Gaussian{(:Σ,)}) = logdet(p.Σ)
-MeasureTheory.logdensity(p::Gaussian, x) = -(sqmahal(p,x) + _logdet(p) + dim(p)*log(2pi))/2
-MeasureTheory.density(p::Gaussian, x) = exp(logdensity(p, x))
-function MeasureTheory.logdensity(p::Gaussian{(:F,:Γ)}, x)
+logdensity(p::Gaussian, x) = -(sqmahal(p,x) + _logdet(p) + dim(p)*log(2pi))/2
+density(p::Gaussian, x) = exp(logdensity(p, x))
+function logdensity(p::Gaussian{(:F,:Γ)}, x)
     C = cholesky(sym(p.Γ))
     -x'*p.Γ*x/2 + x'*p.F - p.F'*(C\p.F)/2  + logdet(C)/2 - dim(p)*log(2pi)/2
 end
