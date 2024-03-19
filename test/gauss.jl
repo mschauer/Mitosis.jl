@@ -36,4 +36,9 @@ end
     π = marginal(q, 1:d1)
     k = conditional(q, d1+1:d, 1:d1)
     @test k(π) ≈ marginal(q, d1+1:d)
+    x = rand(π)
+    obs = rand(k(x))
+    
+    @test logdensity(k(x), obs) ≈ logdensity(likelihood(k, obs), x) 
+  
 end

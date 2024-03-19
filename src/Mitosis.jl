@@ -38,6 +38,7 @@ include("mt.jl")
 export Gaussian, conditional, marginal, Copy, fuse, weighted
 export Traced, BFFG, left′, right′, forward, backward, backwardfilter, forwardsampler
 export BF, density, logdensity, ⊕, kernel, correct, Kernel, WGaussian, Gaussian, ConstantMap, AffineMap, LinearMap, GaussKernel
+export likelihood
 
 function independent_sum
 end
