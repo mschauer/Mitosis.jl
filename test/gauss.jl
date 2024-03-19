@@ -25,3 +25,20 @@ p3 = convert(Gaussian{(:μ,:Σ)}, p2)
         @test 10/sqrt(K) > norm(Q - cov([rand(G) for x in 1:K]))
     end
 end
+
+@testset "conditional" begin
+    using Mitosis
+    d = 5
+    d1 = 2
+    μ = randn(d)
+    A = randn(d,d)
+    q = Gaussian{(:μ,:Σ)}(μ, A*A')
+    π = marginal(q, 1:d1)
+    k = conditional(q, d1+1:d, 1:d1)
+    @test k(π) ≈ marginal(q, d1+1:d)
+    x = rand(π)
+    obs = rand(k(x))
+    
+    @test logdensity(k(x), obs) ≈ logdensity(likelihood(k, obs), x) 
+  
+end

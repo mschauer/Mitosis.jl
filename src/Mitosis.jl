@@ -35,9 +35,10 @@ import StatsBase.sample
 include("mt.jl")
 
 
-export Gaussian, Copy, fuse, weighted
+export Gaussian, conditional, marginal, Copy, fuse, weighted
 export Traced, BFFG, left′, right′, forward, backward, backwardfilter, forwardsampler
 export BF, density, logdensity, ⊕, kernel, correct, Kernel, WGaussian, Gaussian, ConstantMap, AffineMap, LinearMap, GaussKernel
+export likelihood
 
 function independent_sum
 end
@@ -108,6 +109,6 @@ include("wgaussian.jl")
 include("markov.jl")
 include("rules.jl")
 include("regression.jl")
-
+include("bayes.jl")
 
 end # module
