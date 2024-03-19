@@ -1,7 +1,7 @@
 name = "Mitosis"
 uuid = "e74b8d68-74d0-42b9-99ba-91d43d3ab0e8"
 authors = ["mschauer <moritzschauer@web.de>"]
-version = "0.2.1"
+version = "0.3"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -15,6 +15,9 @@ UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 StatsBase = "0.33, 0.34"
 UnPack = "1.0"
 julia = "1"
+Statistics = "1"
+Random = "1"
+LinearAlgebra = "1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
