@@ -109,6 +109,6 @@ include("wgaussian.jl")
 include("markov.jl")
 include("rules.jl")
 include("regression.jl")
-
+include("bayes.jl")
 
 end # module
