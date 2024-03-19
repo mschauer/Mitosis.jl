@@ -56,9 +56,9 @@ function backward(::BFFG, k::Union{AffineGaussianKernel,LinearGaussianKernel}, q
     B, β, Q = params(k)
     Σ = inv(Γ) # requires invertibility of Γ
     K = B'/(Σ + Q)
-    ν̃ = Σ*F - β
-    Fp = K*ν̃
-    Γp = K*B
+    ν̃ = Σ*F - β 
+    Fp = K*ν̃ # B'F - B'Γ β # 
+    Γp = K*B # B'Γ B
     # Corollary 7.2 [Automatic BFFG]
     if !unfused
         cp = c - logdet(B)
@@ -151,6 +151,17 @@ function forward_(::BFFG, k::GaussKernel, m::Message{<:WGaussian{(:F,:Γ,:c)}}, 
 
     c = logpdf0(μ(x) - Γ\F, Q(x) + inv(Γ)) - logdensity(m.q0, x) + c1
     WGaussian{(:μ,:Σ,:c)}(μᵒ, Qᵒ, c)
+end
+
+function backward(::BF, ::Copy, args::Union{Leaf{<:Gaussian{(:μ,:Σ)}},Gaussian{(:μ,:Σ)}}...; unfused=true)
+    unfused = false
+    F, H = params(convert(Gaussian{(:F,:Γ)}, args[1]))
+    for b in args[2:end]
+        F2, H2 = params(convert(Gaussian{(:F,:Γ)}, b))
+        F += F2
+        H += H2
+    end    
+    message(), convert(Gaussian{(:μ,:Σ)}, Gaussian{(:F,:Γ)}(F, H))
 end
 
 
